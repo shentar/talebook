@@ -12,11 +12,11 @@
     <v-tabs-items v-model="tab_active">
         <v-tab-item >
             <v-card-text>
-            <settings></settings>
+            <admin-settings></admin-settings>
             </v-card-text>
         </v-tab-item>
         <v-tab-item >
-            <users></users>
+            <admin-users></admin-users>
         </v-tab-item>
     </v-tabs-items>
 </v-card>
@@ -26,16 +26,16 @@
 </template>
 
 <script>
-import Settings from "../components/Settings.vue"
-import Users from "../components/Users.vue"
+import AdminSettings from "../components/AdminSettings.vue"
+import AdminUsers from "../components/AdminUsers.vue"
 export default {
     created()  {
         this.$store.commit('navbar', true);
         this.$store.commit('loaded');
     },
     components: {
-        Settings,
-        Users,
+        AdminSettings,
+        AdminUsers,
     },
     data: () => ({
         tab_active: null,

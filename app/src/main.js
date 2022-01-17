@@ -17,44 +17,44 @@ Vue.use(VueCookies)
 import talebook from './talebook.js'
 Vue.use(talebook)
 
-import App        from './App.vue'
-import Index      from './pages/Index.vue'
-import Install    from './pages/Install.vue'
-import BookDetail from './pages/BookDetail.vue'
-import BookEdit   from './pages/BookEdit.vue'
-import BookNav    from './pages/BookNav.vue'
-import BookList   from './pages/BookList.vue'
-import Login      from './pages/Login.vue'
-import Logout     from './pages/Logout.vue'
-import Signup     from './pages/Signup.vue'
-import MetaList   from './pages/MetaList.vue'
-import Admin      from './pages/Admin.vue'
-import Welcome    from './pages/Welcome.vue'
-import NotFound   from './pages/NotFound.vue'
-import UserDetail  from './pages/UserDetail.vue'
-import UserHistory from './pages/UserHistory.vue'
 import ActiveSuccess from './pages/ActiveSuccess.vue'
+import App           from './App.vue'
+import AppAdmin      from './pages/AppAdmin.vue'
+import AppIndex      from './pages/AppIndex.vue'
+import AppInstall    from './pages/AppInstall.vue'
+import AppWelcome    from './pages/AppWelcome.vue'
+import BookDetail    from './pages/BookDetail.vue'
+import BookEdit      from './pages/BookEdit.vue'
+import BookList      from './pages/BookList.vue'
+import BookNav       from './pages/BookNav.vue'
+import MetaList      from './pages/MetaList.vue'
+import NotFound      from './pages/NotFound.vue'
+import UserDetail    from './pages/UserDetail.vue'
+import UserHistory   from './pages/UserHistory.vue'
+import UserLogin     from './pages/UserLogin.vue'
+import UserLogout    from './pages/UserLogout.vue'
+import UserSignup    from './pages/UserSignup.vue'
 
 Vue.config.productionTip = false
 
 const router = new VueRouter({
     mode: 'history',
     routes: [
-        { path: '/',         component: Index    },
-        { path: '/nav',      component: BookNav  },
-        { path: '/install',  component: Install  },
-        { path: '/search',   component: BookList },
-        { path: '/recent',   component: BookList },
-        { path: '/hot',      component: BookList },
-        { path: '/admin',    component: Admin },
-        { path: '/welcome',  component: Welcome  },
-        { path: '/login',    component: Login    },
-        { path: '/logout',   component: Logout   },
-        { path: '/signup',   component: Signup   },
+        { path: '/',        component: AppIndex   },
+        { path: '/nav',     component: BookNav    },
+        { path: '/install', component: AppInstall },
+        { path: '/search',  component: BookList   },
+        { path: '/recent',  component: BookList   },
+        { path: '/hot',     component: BookList   },
+        { path: '/admin',   component: AppAdmin   },
+        { path: '/welcome', component: AppWelcome },
+        { path: '/login',   component: UserLogin  },
+        { path: '/logout',  component: UserLogout },
+        { path: '/signup',  component: UserSignup },
 
-        { path: '/user/detail',     component: UserDetail },
-        { path: '/user/history',     component: UserHistory },
-        { path: '/active/success',     component: ActiveSuccess },
+        { path: '/user/detail',    component: UserDetail    },
+        { path: '/user/history',   component: UserHistory   },
+        { path: '/active/success', component: ActiveSuccess },
 
         { path: '/book/:bookid(\\d+)', component: BookDetail },
         { path: '/book/:bookid(\\d+)/edit', component: BookEdit },

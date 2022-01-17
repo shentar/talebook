@@ -9,17 +9,17 @@
       :page.sync="page"
       class="elevation-1"
     >
-    <template v-slot:item.login_ip="{ item }">
+    <template v-slot:[`item.login_ip`]="{ item }">
         {{ item.extra.login_ip}}
     </template>
-    <template v-slot:item.detail="{ item }">
+    <template v-slot:[`item.detail`]="{ item }">
         <span v-if="item.extra.visit_history">    访问{{item.extra.visit_history.length}}本    </span>
         <span v-if="item.extra.read_history">     阅读{{item.extra.read_history.length}}本     </span>
         <span v-if="item.extra.push_history">     推送{{item.extra.push_history.length}}本     </span>
         <span v-if="item.extra.download_history"> 下载{{item.extra.download_history.length}}本 </span>
         <span v-if="item.extra.upload_history">   上传{{item.extra.upload_history.length}}本   </span>
     </template>
-    <template v-slot:item.actions="{ item }">
+    <template v-slot:[`item.actions`]="{ item }">
             <v-menu offset-y right>
                 <template v-slot:activator="{on}">
                 <v-btn color="primary" small v-on="on" >操作 <v-icon small>more_vert</v-icon></v-btn>

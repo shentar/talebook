@@ -32,20 +32,20 @@
                 </v-card>
             </v-dialog>
         </v-content>
-        <upload v-if="$store.state.nav" ></upload>
+        <app-upload v-if="$store.state.nav" ></app-upload>
     </v-app>
 </template>
 
 <script>
 import AppHeader from "./components/AppHeader.vue"
 import AppFooter from "./components/AppFooter.vue"
-import Upload from "./components/Upload.vue"
+import AppUpload from "./components/AppUpload.vue"
 export default {
     name: 'App',
     components: {
         AppHeader,
         AppFooter,
-        Upload,
+        AppUpload,
     },
     data () {
         return {
