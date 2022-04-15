@@ -6,16 +6,20 @@
 </head>
 
 <body>
-  {{ APP }}
-  <script>
-    var _hmt = _hmt || [];
+{{ APP }}
+<script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-300061-17']);
+    _gaq.push(['_trackPageview']);
     (function () {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?996fb35897c8f1320b8bd028e32a9dea";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
+        var ga = document.createElement('script');
+        ga.type = 'text/javascript';
+        ga.async = true;
+        ga.src = ('https:' === document.location.protocol ? 'https://photo.codefine.site:5443/wp-content/themes/thematic/library/scripts/' : 'http://www.google-analytics.com/') + 'ga.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(ga, s);
     })();
-  </script>
+</script>
 </body>
 
 </html>

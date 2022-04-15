@@ -234,13 +234,12 @@ class BookRefer(BaseHandler):
         else:
             if only_meta == "yes":
                 refer_mi.cover_data = None
-            if len(refer_mi.tags) == 0 and len(mi.tags) == 0:
+            if len(refer_mi.tags) + len(mi.tags) <= 2:
                 ts = []
                 for nn, tags in constants.BOOKNAV:
                     for tag in tags:
-                        if tag in refer_mi.title or tag in refer_mi.comments:
-                            ts.append(tag)
-                        elif tag in refer_mi.authors:
+                        if (tag in refer_mi.title or tag in refer_mi.comments or tag in refer_mi.authors) and \
+                                tag not in constants.ESCAPED_TAGS:
                             ts.append(tag)
                 if len(ts) > 0:
                     mi.tags += ts[:8]

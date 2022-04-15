@@ -14,11 +14,11 @@ export default {
       { name: 'apple-mobile-web-app-status-bar-style', content: 'black' },
       //{ name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui' },
-      { name: 'keywords', content: '在线阅读 电子书 下载 推送 kindle epub mobi' },
+      { name: 'keywords', content: '在线阅读 电子书 下载 推送 程序员书单 人文地理 Kindle epub mobi' },
       {
         hid: 'description',
         name: 'description',
-        content: '这是个安静读书的地方。在线阅读Epub/Mobi/Pdf/Azw3等格式的电子书，也支持下载或推送到Kindle设备里',
+        content: '这是个免费的在线书库，基于开源Calibre创建。在这里，你能翻阅喜爱的书籍。同时也能搜索和下载、上传和分享书籍。一个随时随地访问的在线书库！'
       },
     ],
     link: [

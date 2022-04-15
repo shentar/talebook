@@ -29,8 +29,8 @@ class AdminUsers(BaseHandler):
         if not self.admin_user:
             return {"err": "permission.not_admin", "msg": _(u"当前用户非管理员")}
 
-        num = max(10, int(self.get_argument("num", 20)))
-        page = max(0, int(self.get_argument("page", 1)) - 1)
+        num = int(self.get_argument('num', '20'))
+        page = max(0, int(self.get_argument('page', '1')) - 1)
         sort = self.get_argument("sort", "access_time")
         desc = self.get_argument("desc", "desc")
         logging.debug("num=%d, page=%d, sort=%s, desc=%s" % (num, page, sort, desc))
@@ -51,7 +51,11 @@ class AdminUsers(BaseHandler):
         total = query.count()
         start = page * num
         items = []
-        for user in query.limit(num).offset(start).all():
+        if num == -1:
+            all_users = query.offset(start).all()
+        else:
+            all_users = query.limit(num).offset(start).all()
+        for user in all_users:
             d = {
                 "id": user.id,
                 "username": user.username,

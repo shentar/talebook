@@ -116,7 +116,7 @@ export default {
         items: [],
         total: 0,
         loading: true,
-        options: {},
+        options: { sortBy: ["id"], sortDesc: [true] },
         headers: [
             { text: "ID", sortable: true, value: "id" },
             { text: "用户名", sortable: true, value: "username" },
