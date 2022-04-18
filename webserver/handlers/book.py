@@ -336,6 +336,9 @@ class BookDownload(BaseHandler):
             else:
                 raise web.HTTPError(403, reason=_(u"无权操作"))
 
+        # 非管理员，每天限制下载的书本数量。
+        self.check_and_increase_download_count()
+
         fmt = fmt.lower()
         logging.debug("download %s.%s" % (id, fmt))
         book = self.get_book(id)
@@ -506,6 +509,9 @@ class BookRead(BaseHandler):
             if self.current_user and not self.current_user.can_save():
                 raise web.HTTPError(403, reason=_(u"无权在线阅读PDF类书籍"))
 
+            # 非管理员，每天限制下载的书本数量。在线阅读PDF，相当于下载PDF。
+            self.check_and_increase_download_count()
+
             path = book["fmt_pdf"]
             self.set_header("Content-Type", "application/pdf")
             with open(path, "rb") as f:
@@ -567,6 +573,9 @@ class BookPush(BaseHandler):
                     return {"err": "permission", "msg": _(u"无权操作")}
                 elif not self.current_user.is_active():
                     return {"err": "permission", "msg": _(u"无权操作，请先激活账号。")}
+
+        # 非管理员，每天限制下载的书本数量。
+        self.check_and_increase_download_count()
 
         mail_to = self.get_argument("mail_to", None)
         if not mail_to:

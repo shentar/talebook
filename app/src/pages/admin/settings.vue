@@ -7,7 +7,7 @@
                 </v-btn>
                 {{card.title}}
             </v-card-title>
-    
+
             <v-card-text v-show="card.show">
                 <p v-if="card.subtitle" class="">{{card.subtitle}}</p>
 
@@ -144,8 +144,16 @@ export default {
                 { icon: "", key: "ALLOW_GUEST_READ", label: "允许访客在线阅读（无需注册和登录）", type: 'checkbox' },
                 { icon: "", key: "ALLOW_GUEST_DOWNLOAD", label: "允许任意下载（访客无需注册和登录）", type: 'checkbox' },
                 { icon: "", key: "ALLOW_GUEST_PUSH", label: "允许任意推送Kindle（访客无需注册和登录）", type: 'checkbox' },
+
             ],
             groups: [
+            {
+                key: "RESTRICT_DOWNLOADS_COUNT_PER_IP",
+                label: "限制单个IP每天书籍下载数量",
+                fields: [
+                     { icon: "info", key: "downloads_count_per_ip_limitation", label: "单个IP地址每天可以下载的书籍数量（配置为0表示不限制，默认值为0）" },
+                ],
+            },
             {
                 key: "ALLOW_REGISTER",
                 label: "允许访客以邮箱注册账号",
@@ -223,7 +231,7 @@ export default {
                 body: JSON.stringify(this.settings),
             })
             .then( rsp => {
-                if ( rsp.err != 'ok' ) {
+                if ( rsp.err !== 'ok' ) {
                     this.$alert('error', rsp.msg);
                 } else {
                     this.$alert('success', '保存成功！可能需要5~10秒钟生效！');

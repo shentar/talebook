@@ -40,6 +40,7 @@ settings = {
     "opds_max_ungrouped_items" : 100,
     "opds_url_prefix"          : "",
 
+    "downloads_count_per_ip_limitation": 0,
     "db_engine_args": {
         "echo": False,
     },
@@ -88,7 +89,9 @@ settings = {
     'ALLOW_GUEST_READ' : True,
     'ALLOW_GUEST_PUSH' : True,
     'ALLOW_GUEST_DOWNLOAD' : True,
+    'RESTRICT_DOWNLOADS_COUNT_PER_IP': False,
     'ALLOW_REGISTER' : False,
+
     'FOOTER': '本站基于Calibre构建，感谢开源界的力量。所有资源搜集于互联网，如有侵权请邮件联系。',
 
     'FRIENDS': [

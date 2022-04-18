@@ -249,6 +249,8 @@ class AdminSettings(BaseHandler):
             "autoreload",
             "cookie_secret",
             "scan_upload_path",
+            "RESTRICT_DOWNLOADS_COUNT_PER_IP",
+            "downloads_count_per_ip_limitation",
             "douban_apikey",
             "douban_baseurl",
             "douban_max_count",

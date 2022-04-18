@@ -273,6 +273,16 @@ class Item(Base, SQLAlchemyMixin):
         self.collector_id = 1
 
 
+class IpDownloads(Base, SQLAlchemyMixin):
+    __tablename__ = "ipdownloads"
+    ip = Column(String(32), default="", nullable=False, primary_key=True)
+    starttime = Column(DateTime)
+    dcount = Column(Integer, default=0, nullable=False)
+
+    def __init__(self):
+        super(IpDownloads, self).__init__()
+
+
 class ScanFile(Base, SQLAlchemyMixin):
     __tablename__ = "scanfiles"
     id = Column(Integer, primary_key=True)

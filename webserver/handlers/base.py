@@ -18,7 +18,7 @@ from tornado import web
 from webserver import loader, utils
 
 # import social_tornado.handlers
-from webserver.models import Item, Message, Reader
+from webserver.models import Item, Message, Reader, IpDownloads
 
 messages = defaultdict(list)
 CONF = loader.get_settings()
@@ -418,6 +418,34 @@ class BaseHandler(web.RequestHandler):
             "[%5d ms] select books from database (count = %d)" % (int(1000 * (time.time() - _ts)), len(books))
         )
         return books
+
+    def check_and_increase_download_count(self):
+        if self.is_admin():
+            return
+
+        max_download_count = int(self.settings["downloads_count_per_ip_limitation"])
+        if max_download_count <= 0:
+            return
+
+        try:
+            ipdownloads = self.session.query(IpDownloads).filter(IpDownloads.ip == self.request.remote_ip + "").one()
+        except:
+            logging.info("first time download: " + self.request.remote_ip)
+            ipdownloads = IpDownloads()
+            ipdownloads.ip = self.request.remote_ip + ""
+            ipdownloads.starttime = datetime.datetime.now()
+            ipdownloads.dcount = 1
+            ipdownloads.save()
+
+        interval = datetime.datetime.now() - ipdownloads.starttime
+        if interval.seconds >= 24 * 3600:
+            ipdownloads.starttime = datetime.datetime.now()
+            ipdownloads.dcount = 1
+        else:
+            if ipdownloads.dcount >= max_download_count:
+                raise web.HTTPError(400, reason=_(u"由于服务器压力过载，每个IP地址一天最多下载/推送%d本书" % max_download_count))
+            ipdownloads.dcount += 1
+        ipdownloads.save()
 
     def count_increase(self, book_id, **kwargs):
         try:
