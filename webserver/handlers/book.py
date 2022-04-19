@@ -20,6 +20,7 @@ from webserver import constants, loader, utils
 from webserver.handlers.base import BaseHandler, ListHandler, auth, js
 from webserver.models import Item
 from webserver.plugins.meta import baike, douban
+from webserver.utils import check_email
 
 CONF = loader.get_settings()
 _q = queue.Queue()
@@ -209,11 +210,15 @@ class BookRefer(BaseHandler):
     @js
     @auth
     def post(self, id):
+        if not self.current_user:
+            return self.redirect("/login")
+
         provider_key = self.get_argument("provider_key", "error")
         provider_value = self.get_argument("provider_value", "")
         only_meta = self.get_argument("only_meta", "")
         only_cover = self.get_argument("only_cover", "")
         book_id = int(id)
+
         if not provider_key:
             return {"err": "params.provider_key.invalid", "msg": _(u"provider_key参数错误")}
         if not provider_value:
@@ -224,7 +229,8 @@ class BookRefer(BaseHandler):
         mi = self.db.get_metadata(book_id, index_is_id=True)
         if not mi:
             return {"err": "params.book.invalid", "msg": _(u"书籍不存在")}
-        if not self.is_admin() and not self.is_book_owner(book_id, self.user_id()):
+        if not (self.is_admin() or (
+                self.is_book_owner(book_id, self.user_id()) and self.current_user.can_edit(check=True))):
             return {"err": "user.no_permission", "msg": _(u"无权限")}
 
         refer_mi = self.plugin_get_book_meta(provider_key, provider_value, mi)
@@ -255,13 +261,18 @@ class BookEdit(BaseHandler):
     @js
     @auth
     def post(self, bid):
+        if not self.current_user:
+            return self.redirect("/login")
+
         book = self.get_book(bid)
+        if not book:
+            return {"err": "book not exist"}
         bid = book["id"]
         if isinstance(book["collector"], dict):
             cid = book["collector"]["id"]
         else:
             cid = book["collector"].id
-        if not self.current_user.can_edit() or not (self.is_admin() or self.is_book_owner(bid, cid)):
+        if not (self.is_admin() or (self.current_user.can_edit(check=True) and self.is_book_owner(bid, cid))):
             return {"err": "permission", "msg": _(u"无权操作")}
 
         data = tornado.escape.json_decode(self.request.body)
@@ -298,17 +309,20 @@ class BookDelete(BaseHandler):
     @js
     @auth
     def post(self, bid):
+        if not self.current_user:
+            return self.redirect("/login")
+
         book = self.get_book(bid)
         bid = book["id"]
         if isinstance(book["collector"], dict):
             cid = book["collector"]["id"]
         else:
             cid = book["collector"].id
-        if not self.current_user.can_edit() or not (self.is_admin() or self.is_book_owner(bid, cid)):
-            return {"err": "permission", "msg": _(u"无权操作")}
+        if not (self.is_admin() or (self.current_user.can_edit(check=True) and self.is_book_owner(bid, cid))):
+            return {"err": "permission", "msg": _(u"没有编辑书籍的权限")}
 
-        if not self.current_user.can_delete() or not (self.is_admin() or self.is_book_owner(bid, cid)):
-            return {"err": "permission", "msg": _(u"无权操作")}
+        if not (self.is_admin() or (self.current_user.can_delete(check=True) and self.is_book_owner(bid, cid))):
+            return {"err": "permission", "msg": _(u"无权删除书籍")}
 
         self.db.delete_book(bid)
         self.add_msg("success", _(u"删除书籍《%s》") % book["title"])
@@ -323,17 +337,12 @@ class BookDownload(BaseHandler):
 
     def get(self, id, fmt):
         is_opds = self.get_argument("from", "") == "opds"
-        if not CONF["ALLOW_GUEST_DOWNLOAD"] and not self.current_user:
+        if not CONF["ALLOW_GUEST_DOWNLOAD"]:
             if is_opds:
                 return self.send_error_of_not_invited()
-            else:
+            elif not self.current_user:
                 return self.redirect("/login")
-
-        if self.current_user:
-            if self.current_user.can_save():
-                if not self.current_user.is_active():
-                    raise web.HTTPError(403, reason=_(u"无权操作，请先登录注册邮箱激活账号。"))
-            else:
+            elif not self.current_user.can_save(check=True):
                 raise web.HTTPError(403, reason=_(u"无权操作"))
 
         # 非管理员，每天限制下载的书本数量。
@@ -401,7 +410,7 @@ class HotBook(ListHandler):
         page_now = int(start / delta)
         pages = []
         for p in range(page_now - 3, page_now + 3):
-            if 0 <= p and p <= page_max:
+            if 0 <= p <= page_max:
                 pages.append(p)
         items = db_items.limit(delta).offset(start).all()
         ids = [item.book_id for item in items]
@@ -426,10 +435,13 @@ class BookUpload(BaseHandler):
     @js
     @auth
     def post(self):
+        if not self.current_user:
+            return self.redirect("/login")
+        elif self.current_user.can_upload(check=True):
+            return {"err": "permission", "msg": _(u"无权上传书籍")}
+
         from calibre.ebooks.metadata.meta import get_metadata
 
-        if not self.current_user.can_upload():
-            return {"err": "permission", "msg": _(u"无权操作")}
         name, data = self.get_upload_file()
         name = re.sub(r"[\x80-\xFF]+", BookUpload.convert, name)
         logging.error("upload book name = " + repr(name))
@@ -475,15 +487,11 @@ class BookUpload(BaseHandler):
 
 class BookRead(BaseHandler):
     def get(self, id):
-        if not CONF["ALLOW_GUEST_READ"] and not self.current_user:
-            return self.redirect("/login")
-
-        if self.current_user:
-            if self.current_user.can_read():
-                if not self.current_user.is_active():
-                    raise web.HTTPError(403, reason=_(u"无权在线阅读，请先登录注册邮箱激活账号。"))
-            else:
-                raise web.HTTPError(403, reason=_(u"无权在线阅读"))
+        if not CONF["ALLOW_GUEST_READ"]:
+            if not self.current_user:
+                return self.redirect("/login")
+            elif not self.current_user.can_read(check=True):
+                return {"err": "permission", "msg": _(u"无权在线阅读")}
 
         book = self.get_book(id)
         book_id = book["id"]
@@ -503,11 +511,11 @@ class BookRead(BaseHandler):
 
         if "fmt_pdf" in book:
             # PDF类书籍需要检查下载权限。
-            if not CONF["ALLOW_GUEST_DOWNLOAD"] and not self.current_user:
-                return self.redirect("/login")
-
-            if self.current_user and not self.current_user.can_save():
-                raise web.HTTPError(403, reason=_(u"无权在线阅读PDF类书籍"))
+            if not CONF["ALLOW_GUEST_DOWNLOAD"]:
+                if not self.current_user:
+                    return self.redirect("/login")
+                elif not self.current_user.can_save(check=True):
+                    raise web.HTTPError(403, reason=_(u"无权在线阅读PDF类书籍(无权下载书籍)"))
 
             # 非管理员，每天限制下载的书本数量。在线阅读PDF，相当于下载PDF。
             self.check_and_increase_download_count()
@@ -565,21 +573,18 @@ class BookRead(BaseHandler):
 class BookPush(BaseHandler):
     @js
     def post(self, id):
+        mail_to = self.get_argument("mail_to", None)
+        if not check_email(mail_to):
+            return {"err": "params.error", "msg": _(u"Email无效")}
+
         if not CONF["ALLOW_GUEST_PUSH"]:
             if not self.current_user:
-                return {"err": "user.need_login", "msg": _(u"请先登录")}
-            else:
-                if not self.current_user.can_push():
-                    return {"err": "permission", "msg": _(u"无权操作")}
-                elif not self.current_user.is_active():
-                    return {"err": "permission", "msg": _(u"无权操作，请先激活账号。")}
+                return self.redirect("/login")
+            elif not self.current_user.can_push(check=True):
+                return {"err": "permission", "msg": _(u"无权推送书籍")}
 
         # 非管理员，每天限制下载的书本数量。
         self.check_and_increase_download_count()
-
-        mail_to = self.get_argument("mail_to", None)
-        if not mail_to:
-            return {"err": "params.error", "msg": _(u"参数错误")}
 
         book = self.get_book(id)
         book_id = book["id"]
@@ -643,8 +648,12 @@ class BookPush(BaseHandler):
         return new_path
 
     def do_send_mail(self, book, mail_to, fmt, fpath):
-        from calibre.ebooks.metadata import authors_to_string
+        mail_from = self.settings["smtp_username"]
+        if not check_email(mail_from):
+            logging.info("the mail_from is not valid")
+            return
 
+        from calibre.ebooks.metadata import authors_to_string
         # read meta info
         author = authors_to_string(book["authors"] if book["authors"] else [_(u"佚名")])
         title = book["title"] if book["title"] else _(u"无名书籍")
@@ -657,10 +666,9 @@ class BookPush(BaseHandler):
             "site_url": self.site_url,
             "site_title": CONF["site_title"],
         }
-        mail_from = self.settings["smtp_username"]
+
         mail_subject = _("%(site_title)s：推送给您一本书《%(title)s》") % mail_args
         mail_body = _(u"为您奉上一本《%(title)s》, 欢迎常来访问%(site_title)s！%(site_url)s") % mail_args
-        status = msg = ""
         try:
             logging.info("send %(title)s to %(mail_to)s" % vars())
             self.mail(mail_from, mail_to, mail_subject, mail_body, fdata, fname)
