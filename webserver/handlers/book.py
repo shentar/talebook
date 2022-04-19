@@ -17,7 +17,7 @@ import tornado.escape
 from tornado import web
 
 from webserver import constants, loader, utils
-from webserver.handlers.base import BaseHandler, ListHandler, auth, js
+from webserver.handlers.base import BaseHandler, ListHandler, js, auth
 from webserver.models import Item
 from webserver.plugins.meta import baike, douban
 from webserver.utils import check_email
@@ -180,8 +180,10 @@ class BookRefer(BaseHandler):
         return {"err": "params.provider_key.not_support", "msg": _(u"不支持该provider_key")}
 
     @js
-    @auth
     def get(self, id):
+        if not self.current_user:
+            return self.redirect("/login?id=%d" % int(id))
+
         book_id = int(id)
         mi = self.db.get_metadata(book_id, index_is_id=True)
         books = self.plugin_search_books(mi)
@@ -208,10 +210,9 @@ class BookRefer(BaseHandler):
         return {"err": "ok", "books": rsp}
 
     @js
-    @auth
     def post(self, id):
         if not self.current_user:
-            return self.redirect("/login")
+            return self.redirect("/login?id=%d" % int(id))
 
         provider_key = self.get_argument("provider_key", "error")
         provider_value = self.get_argument("provider_value", "")
@@ -259,10 +260,9 @@ class BookRefer(BaseHandler):
 
 class BookEdit(BaseHandler):
     @js
-    @auth
     def post(self, bid):
         if not self.current_user:
-            return self.redirect("/login")
+            return self.redirect("/login?id=%d" % int(bid))
 
         book = self.get_book(bid)
         if not book:
@@ -307,10 +307,9 @@ class BookEdit(BaseHandler):
 
 class BookDelete(BaseHandler):
     @js
-    @auth
     def post(self, bid):
         if not self.current_user:
-            return self.redirect("/login")
+            return self.redirect("/login?id=%d" % int(bid))
 
         book = self.get_book(bid)
         bid = book["id"]
@@ -341,7 +340,7 @@ class BookDownload(BaseHandler):
             if is_opds:
                 return self.send_error_of_not_invited()
             elif not self.current_user:
-                return self.redirect("/login")
+                return self.redirect("/login?id=%d" % int(id))
             elif not self.current_user.can_save(check=True):
                 raise web.HTTPError(403, reason=_(u"无权操作"))
 
@@ -435,9 +434,7 @@ class BookUpload(BaseHandler):
     @js
     @auth
     def post(self):
-        if not self.current_user:
-            return self.redirect("/login")
-        elif self.current_user.can_upload(check=True):
+        if not self.current_user.can_upload(check=True):
             return {"err": "permission", "msg": _(u"无权上传书籍")}
 
         from calibre.ebooks.metadata.meta import get_metadata
@@ -489,7 +486,7 @@ class BookRead(BaseHandler):
     def get(self, id):
         if not CONF["ALLOW_GUEST_READ"]:
             if not self.current_user:
-                return self.redirect("/login")
+                return self.redirect("/login?id=%d" % int(id))
             elif not self.current_user.can_read(check=True):
                 return {"err": "permission", "msg": _(u"无权在线阅读")}
 
@@ -513,7 +510,7 @@ class BookRead(BaseHandler):
             # PDF类书籍需要检查下载权限。
             if not CONF["ALLOW_GUEST_DOWNLOAD"]:
                 if not self.current_user:
-                    return self.redirect("/login")
+                    return self.redirect("/login?id=%d" % int(id))
                 elif not self.current_user.can_save(check=True):
                     raise web.HTTPError(403, reason=_(u"无权在线阅读PDF类书籍(无权下载书籍)"))
 
@@ -579,7 +576,7 @@ class BookPush(BaseHandler):
 
         if not CONF["ALLOW_GUEST_PUSH"]:
             if not self.current_user:
-                return self.redirect("/login")
+                return self.redirect("/login?id=%d" % int(id))
             elif not self.current_user.can_push(check=True):
                 return {"err": "permission", "msg": _(u"无权推送书籍")}
 
