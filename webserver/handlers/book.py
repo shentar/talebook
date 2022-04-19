@@ -464,6 +464,8 @@ class BookUpload(BaseHandler):
         logging.info("upload mi.title = " + repr(mi.title))
         books = self.db.books_with_same_title(mi)
         if books:
+            # 删除源文件
+            os.remove(fpath)
             book_id = books.pop()
             return {
                 "err": "samebook",
@@ -473,6 +475,9 @@ class BookUpload(BaseHandler):
 
         fpaths = [fpath]
         book_id = self.db.import_book(mi, fpaths)
+        # 导入成功则删除源文件
+        os.remove(fpath)
+
         self.user_history("upload_history", {"id": book_id, "title": mi.title})
         self.add_msg("success", _(u"导入书籍成功！"))
         item = Item()
