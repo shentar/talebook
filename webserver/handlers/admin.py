@@ -17,7 +17,7 @@ import tornado
 from webserver import loader
 from webserver.handlers.base import BaseHandler, auth, js, is_admin
 from webserver.models import Reader
-from webserver.utils import SimpleBookFormatter
+from webserver.utils import SimpleBookFormatter, check_email
 
 CONF = loader.get_settings()
 
@@ -304,7 +304,7 @@ class AdminInstall(BaseHandler):
         password = self.get_argument("password", "").strip()
         if not username or not password or not email or not title:
             return {"err": "params.invalid", "msg": _(u"填写的内容有误")}
-        if not re.match(Reader.RE_EMAIL, email):
+        if not check_email(email):
             return {"err": "params.email.invalid", "msg": _(u"Email无效")}
         if len(username) < 5 or len(username) > 20 or not re.match(Reader.RE_USERNAME, username):
             return {"err": "params.username.invalid", "msg": _(u"用户名无效")}
