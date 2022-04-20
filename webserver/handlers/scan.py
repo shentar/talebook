@@ -332,8 +332,18 @@ class ScanDelete(BaseHandler):
         if hashlist == "all":
             hashlist = None
 
+        delete_files = []
+        records = self.session.query(ScanFile).filter(ScanFile.hash.in_(hashlist))
+        for record in records:
+            delete_files.append(record.path)
+
         m = Scanner(self.db, self.session)
+
         count = m.delete(hashlist)
+
+        for file in delete_files:
+            os.remove(file)
+
         return {"err": "ok", "msg": _(u"删除成功"), "count": count}
 
 

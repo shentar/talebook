@@ -581,7 +581,7 @@ class BookPush(BaseHandler):
 
         if not CONF["ALLOW_GUEST_PUSH"]:
             if not self.current_user:
-                return self.redirect("/login?id=%d" % int(id))
+                return {"err": "permission", "msg": _(u"不支持未登录用户推送书籍，请先登录账号。")}
             elif not self.current_user.can_push(check=True):
                 return {"err": "permission", "msg": _(u"无权推送书籍")}
 
@@ -600,7 +600,11 @@ class BookPush(BaseHandler):
             if fpath:
                 filesize = int(self.db.sizeof_format(book_id, fmt, index_is_id=True))
                 if filesize > 4 * 1024 * 1024:
-                    return {"err": "book.file_too_large", "msg": _(u"文件过大，不支持邮件发送。（%d > 4MB）" % filesize)}
+                    return {
+                        "err": "book.file_too_large",
+                        "msg": _(u"文件过大，不支持邮件发送。（%dMiB > 4MiB）" % (filesize / 1024 / 1024))
+                    }
+
                 self.bg_send_book(book, mail_to, fmt, fpath)
                 return {"err": "ok", "msg": _(u"服务器后台正在推送了。您可关闭此窗口，继续浏览其他书籍。")}
 
