@@ -16,9 +16,8 @@ from sqlalchemy import func as sql_func
 from tornado import web
 
 from webserver import loader, utils
-
 # import social_tornado.handlers
-from webserver.models import Item, Message, Reader, IpDownloads
+from webserver.models import Item, Message, Reader, IpDownloads, KeyValueStore
 
 messages = defaultdict(list)
 CONF = loader.get_settings()
@@ -55,7 +54,7 @@ def js(func):
 
             logging.error(traceback.format_exc())
             msg = (
-                'Exception:<br><pre style="white-space:pre-wrap;word-break:keep-all">%s</pre>' % traceback.format_exc()
+                    'Exception:<br><pre style="white-space:pre-wrap;word-break:keep-all">%s</pre>' % traceback.format_exc()
             )
             rsp = {"err": "exception", "msg": msg}
             if isinstance(e, web.Finish):
@@ -365,8 +364,8 @@ class BaseHandler(web.RequestHandler):
             "messages": self.pop_messages(),
             "count_all_users": self.session.query(sql_func.count(Reader.id)).scalar(),
             "count_hot_users": self.session.query(sql_func.count(Reader.id))
-            .filter(Reader.access_time > last_week)
-            .scalar(),
+                .filter(Reader.access_time > last_week)
+                .scalar(),
             "IMG": self.cdn_url,
             "SITE_TITLE": CONF["site_title"],
         }
@@ -448,16 +447,30 @@ class BaseHandler(web.RequestHandler):
         ipdownloads.save()
 
     def count_increase(self, book_id, **kwargs):
+        g = kwargs.get("count_guest", 0)
+        v = kwargs.get("count_visit", 0)
+        d = kwargs.get("count_download", 0)
+
         try:
             item = self.session.query(Item).filter(Item.book_id == book_id).one()
         except:
             item = Item()
             item.book_id = book_id
-
-        item.count_guest += kwargs.get("count_guest", 0)
-        item.count_visit += kwargs.get("count_visit", 0)
-        item.count_download += kwargs.get("count_download", 0)
+        item.count_guest += g
+        item.count_visit += v
+        item.count_download += d
         item.save()
+
+        for o in [{"key": "visit", "value": v}, {"key": "download", "value": d}]:
+            if o["value"] > 0:
+                try:
+                    s = self.session.query(KeyValueStore).filter(KeyValueStore.key == o["key"]).one()
+                    s.value = int(s.value) + o["value"]
+                except:
+                    s = KeyValueStore()
+                    s.key = o["key"]
+                    s.value = "1"
+                s.save()
 
     def search_for_books(self, query):
         self.search_restriction = ""
@@ -480,10 +493,10 @@ class BaseHandler(web.RequestHandler):
         name_column = "A.rating as name" if field in ["rating"] else "A.name"
         args = {"table": table, "field": field, "name_column": name_column}
         sql = (
-            """SELECT A.id, %(name_column)s, count(distinct book) as count
-            FROM %(table)s as A left join books_%(table)s_link as B
-            on A.id = B.%(field)s group by A.id"""
-            % args
+                """SELECT A.id, %(name_column)s, count(distinct book) as count
+                FROM %(table)s as A left join books_%(table)s_link as B
+                on A.id = B.%(field)s group by A.id"""
+                % args
         )
         logging.debug(sql)
         rows = self.cache.backend.conn.get(sql)
@@ -591,13 +604,13 @@ class ListHandler(BaseHandler):
         if ids:
             ids = list(ids)
             count = len(ids)
-            books = self.get_books(ids=ids[start : start + delta])
+            books = self.get_books(ids=ids[start: start + delta])
             if sort_by_id:
                 # 归一化，按照id从大到小排列。
                 self.do_sort(books, "id", False)
         else:
             count = len(all_books)
-            books = all_books[start : start + delta]
+            books = all_books[start: start + delta]
         return {
             "err": "ok",
             "title": title,

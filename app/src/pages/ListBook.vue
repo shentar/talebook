@@ -54,7 +54,7 @@ export default {
         return {title: "搜索"};
 
       case "/recent":
-        return {title: "近期更新"};
+        return {title: "全部书籍"};
 
       default:
         break
@@ -82,7 +82,7 @@ export default {
     }
   },
   created() {
-    if (this.$route.query.start != undefined) {
+    if (this.$route.query.start !== undefined) {
       this.page = 1 + parseInt(this.$route.query.start / this.page_size)
     }
     if (!this.inited) {
@@ -105,7 +105,7 @@ export default {
       this.$store.commit('navbar', true);
       this.$backend(route.fullPath)
         .then(rsp => {
-          if (rsp.err != 'ok') {
+          if (rsp.err !== 'ok') {
             this.alert("error", rsp.msg);
             return;
           }

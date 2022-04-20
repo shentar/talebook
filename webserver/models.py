@@ -295,6 +295,15 @@ class IpDownloads(Base, SQLAlchemyMixin):
         super(IpDownloads, self).__init__()
 
 
+class KeyValueStore(Base, SQLAlchemyMixin):
+    __tablename__ = "access_statis"
+    key = Column(String(128), default="", nullable=False, primary_key=True)
+    value = Column(String(128), default="", nullable=False)
+
+    def __init__(self):
+        super(KeyValueStore, self).__init__()
+
+
 class ScanFile(Base, SQLAlchemyMixin):
     __tablename__ = "scanfiles"
     id = Column(Integer, primary_key=True)

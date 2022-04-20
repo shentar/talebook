@@ -12,7 +12,7 @@ from tornado import web
 
 from webserver import loader
 from webserver.handlers.base import BaseHandler, auth, js
-from webserver.models import Message, Reader
+from webserver.models import Message, Reader, KeyValueStore
 from webserver.utils import check_email
 from webserver.version import VERSION
 
@@ -290,8 +290,18 @@ class UserInfo(BaseHandler):
         last_week = datetime.datetime.now() - datetime.timedelta(days=7)
         count_all_users = self.session.query(func.count(Reader.id)).scalar()
         count_hot_users = self.session.query(func.count(Reader.id)).filter(Reader.access_time > last_week).scalar()
+        v = "0"
+        visits = self.session.query(KeyValueStore.value).filter(KeyValueStore.key == "visit")
+        if visits.count() > 0:
+            v = visits[0].value
+        d = "0"
+        downloads = self.session.query(KeyValueStore.value).filter(KeyValueStore.key == "download")
+        if downloads.count() > 0:
+            d = downloads[0].value
         return {
             "books": db.count(),
+            "readcount": int(v),
+            "downloadcount": int(d),
             "tags": len(db.all_tags()),
             "authors": len(db.all_authors()),
             "publishers": len(db.all_publishers()),

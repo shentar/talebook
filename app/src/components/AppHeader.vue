@@ -221,6 +221,8 @@ export default {
                 push: true,
                 read: true,
             },
+            readcount: 0,
+            downloadcount: 0,
         },
         messages: [],
     }),
@@ -234,7 +236,7 @@ export default {
                 {
                     icon: "mdi-cog",
                     text: "管理",
-                    expand: this.$route.path.indexOf("/admin/") == 0,
+                    expand: this.$route.path.indexOf("/admin/") === 0,
                     groups: [
                         { icon: "mdi-cog", href: "/admin/settings", text: "系统设置" },
                         { icon: "mdi-human-greeting", href: "/admin/users", text: "用户管理" },
@@ -255,7 +257,7 @@ export default {
                         { icon: "mdi-library-shelves", href: "/series", text: "丛书", count: this.sys.series },
                         { icon: "mdi-star-half", href: "/rating", text: "评分" },
                         { icon: "mdi-trending-up", href: "/hot", text: "热度榜单" },
-                        { icon: "mdi-history", href: "/recent", text: "所有书籍", count: this.sys.books },
+                        { icon: "mdi-bookshelf", href: "/recent", text: "所有书籍", count: this.sys.books },
                     ],
                 },
             ];
@@ -267,7 +269,10 @@ export default {
             var sys_links = [
                 { heading: "系统" },
                 { icon: "mdi-history", text: "系统版本", href: "", count: this.sys.version },
-                { icon: "mdi-human", text: "用户数", href: "", count: this.sys.users },
+                { icon: "mdi-human", text: "用户数量", href: "", count: this.sys.users },
+                { icon: "mdi-library-shelves", text: "书籍数量", href: "", count: this.sys.books },
+                { icon: "mdi-book-open-blank-variant", text: "阅读数量", href: "", count: this.sys.readcount },
+                { icon: "mdi-tray-arrow-down", text: "下载数量", href: "", count: this.sys.downloadcount },
                 { icon: "mdi-cellphone", text: "OPDS接口", href: "/opds/", count: "OPDS", target: "_blank" },
             ];
 
@@ -279,7 +284,7 @@ export default {
         },
     },
     mounted() {
-        this.visit_admin_pages = this.$route.path.indexOf("/admin/") == 0;
+        this.visit_admin_pages = this.$route.path.indexOf("/admin/") === 0;
         this.sidebar = this.$vuetify.breakpoint.lgAndUp;
         this.$backend("/user/info").then((rsp) => {
             this.err = rsp.err;
@@ -288,7 +293,7 @@ export default {
             this.$store.commit("login", rsp);
         });
         this.$backend("/user/messages").then((rsp) => {
-            if (rsp.err == "ok") {
+            if (rsp.err === "ok") {
                 this.messages = rsp.messages;
             }
         });
@@ -304,14 +309,14 @@ export default {
             return r;
         },
         do_mobile_search: function () {
-            if (this.search.trim() != "") {
+            if (this.search.trim() !== "") {
                 this.$router.push("/search?name=" + this.search).catch(() => {});
             } else {
                 this.$refs.mobile_search.focus();
             }
         },
         do_search: function () {
-            if (this.search.trim() != "") {
+            if (this.search.trim() !== "") {
                 this.$router.push("/search?name=" + this.search).catch(() => {});
             } else {
                 this.$refs.search.focus();
@@ -322,7 +327,7 @@ export default {
                 method: "POST",
                 body: JSON.stringify({ id: msgid }),
             }).then((rsp) => {
-                if (rsp.err == "ok") {
+                if (rsp.err === "ok") {
                     this.messages.splice(idx, 1);
                 }
             });

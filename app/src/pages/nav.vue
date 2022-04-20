@@ -22,7 +22,7 @@ export default {
         navs: [],
     }),
     head: () => ({
-        title: "书籍索引"
+        title: "分类导览"
     }),
     async asyncData({ params, app, res }) {
         if ( res !== undefined ) {

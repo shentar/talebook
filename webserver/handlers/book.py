@@ -102,6 +102,7 @@ class BookDetail(BaseHandler):
     @js
     def get(self, id):
         book = self.get_book(id)
+        self.count_increase(id, count_visit=1)
         return {
             "err": "ok",
             "kindle_sender": CONF["smtp_username"],
@@ -498,7 +499,7 @@ class BookRead(BaseHandler):
         book = self.get_book(id)
         book_id = book["id"]
         self.user_history("read_history", book)
-        self.count_increase(book_id, count_download=1)
+        self.count_increase(book_id, count_visit=1)
 
         # check format
         for fmt in ["epub", "mobi", "azw", "azw3", "txt"]:
