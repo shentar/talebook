@@ -606,7 +606,7 @@ class BookPush(BaseHandler):
         self.count_increase(book_id, count_download=1)
 
         # check format
-        for fmt in ["mobi", "azw", "pdf"]:
+        for fmt in ["mobi", "azw", "epub", "pdf"]:
             fpath = book.get("fmt_%s" % fmt, None)
             if fpath:
                 filesize = int(self.db.sizeof_format(book_id, fmt, index_is_id=True))
@@ -620,7 +620,7 @@ class BookPush(BaseHandler):
                 return {"err": "ok", "msg": _(u"服务器后台正在推送了。您可关闭此窗口，继续浏览其他书籍。")}
 
         # we do no have formats for kindle
-        if "fmt_epub" not in book and "fmt_azw3" not in book and "fmt_txt" not in book:
+        if "fmt_azw3" not in book and "fmt_txt" not in book:
             return {
                 "err": "book.no_format_for_kindle",
                 "msg": _(u"抱歉，该书无可用于kindle阅读的格式"),
@@ -655,7 +655,7 @@ class BookPush(BaseHandler):
         progress_file = self.get_path_progress(book["id"])
 
         old_path = None
-        for f in ["txt", "azw3", "epub"]:
+        for f in ["txt", "azw3"]:
             old_path = book.get("fmt_%s" % f, old_path)
 
         logging.debug("convert book from [%s] to [%s]", old_path, new_path)
