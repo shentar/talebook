@@ -152,10 +152,9 @@ export default {
         init(route, next) {
             //this.$store.commit('navbar', true);
             this.bookid = this.$route.params.bid;
-            this.$backend("/book/" + this.bookid)
-                .then(rsp => {
-                    this.book = rsp.book;
-                });
+            this.$backend("/book/" + this.bookid).then(rsp => {
+                this.book = rsp.book;
+            });
             if (next) next();
         },
         save_book() {
@@ -163,15 +162,14 @@ export default {
             this.$backend("/book/" + this.book.id + "/edit", {
                 method: "POST",
                 body: JSON.stringify(this.book),
-            })
-                .then(rsp => {
-                    if (rsp.err === 'ok') {
-                        this.$alert("success", "保存成功！");
-                        this.$router.push("/book/" + this.book.id);
-                    } else {
-                        this.$alert("error", rsp.msg);
-                    }
-                });
+            }).then(rsp => {
+                if (rsp.err === 'ok') {
+                    this.$alert("success", "保存成功！");
+                    this.$router.push("/book/" + this.book.id);
+                } else {
+                    this.$alert("error", rsp.msg);
+                }
+            });
         }
     },
 }

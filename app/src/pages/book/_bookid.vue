@@ -86,10 +86,9 @@
                                         dark
                                         :href="book.website"
                                         target="__blank"
-                                        :color="book.source === '豆瓣' ? 'green' : 'blue'"
-                                    >{{ book.source }}
-                                    </v-chip
-                                    >
+                                        :color="book.source === '豆瓣' ? 'green' : 'blue'">
+                                        {{ book.source }}
+                                    </v-chip>
                                     <v-spacer></v-spacer>
                                     <v-menu offset-y right>
                                         <template v-slot:activator="{ on }">
@@ -120,7 +119,7 @@
             </v-card>
 
             <v-card v-if="!dialog_refer">
-                <v-toolbar flat dense color="white">
+                <v-toolbar flat dense color="white" v-if="this.err === 'ok'">
                     <!-- download -->
                     <v-btn icon small fab @click="dialog_download = true">
                         <v-icon>get_app</v-icon>
@@ -134,18 +133,15 @@
 
                     <v-spacer></v-spacer>
                     <v-btn :small="tiny" dark color="primary" class="mx-2 d-flex d-sm-flex"
-                           @click="dialog_kindle = !dialog_kindle"
-                    >
+                           @click="dialog_kindle = !dialog_kindle">
                         <v-icon left v-if="!tiny">email</v-icon>
                         推送
-                    </v-btn
-                    >
+                    </v-btn>
                     <v-btn :small="tiny" dark color="primary" class="mx-2 d-flex d-sm-flex" :href="'/read/' + book.id"
                            target="_blank">
                         <v-icon left v-if="!tiny">import_contacts</v-icon>
                         阅读
-                    </v-btn
-                    >
+                    </v-btn>
 
                     <template v-if="book.is_owner">
                         <v-menu offset-y>
@@ -174,7 +170,17 @@
                         </v-menu>
                     </template>
                 </v-toolbar>
-                <v-row>
+                <v-row v-if="this.err !== 'ok'">
+                    <v-card-text class='text-center'>
+                        <div>
+                            <span color="red">{{ this.msg }}</span> <br/><br/><br/>
+                            <v-btn color="primary" @click="$router.push('/')">返回主页
+                            </v-btn>
+                            <br/><br/><br/>
+                        </div>
+                    </v-card-text>
+                </v-row>
+                <v-row v-else>
                     <v-col class="ma-auto" cols="8" sm="4">
                         <v-img class="book-img" :src="book.img" :aspect-ratio="11 / 15" max-height="500px"
                                contain></v-img>
@@ -208,8 +214,7 @@
                                         dark
                                         color="indigo"
                                         :to="'/author/' + encodeURIComponent(author)"
-                                        :key="'author-' + author"
-                                    >
+                                        :key="'author-' + author">
                                         <v-icon>face</v-icon>
                                         {{ author }}
                                     </v-chip>
@@ -225,8 +230,7 @@
                                     dark
                                     color="indigo"
                                     v-if="book.series"
-                                    :to="'/series/' + encodeURIComponent(book.series)"
-                                >
+                                    :to="'/series/' + encodeURIComponent(book.series)">
                                     <v-icon>explore</v-icon>
                                     丛书: {{ book.series }}
                                 </v-chip>
@@ -242,27 +246,26 @@
                                         color="grey"
                                         :key="'tag-' + tag"
                                         v-if="tag"
-                                        :to="'/tag/' + encodeURIComponent(tag)"
-                                    >
+                                        :to="'/tag/' + encodeURIComponent(tag)">
                                         <v-icon>loyalty</v-icon>
                                         {{ tag }}
                                     </v-chip>
                                 </template>
                             </div>
                         </v-card-text>
-                        <v-card-text>
+                        <v-card-text v-if="this.err === 'ok'">
                             <p v-if="book.comments" v-html="book.comments"></p>
                             <p v-else>点击浏览详情</p>
                         </v-card-text>
                     </v-col>
                 </v-row>
-                <v-card-text class="align-right book-footer">
+                <v-card-text class="align-right book-footer" v-if="this.err === 'ok'">
                     <span class="grey--text"> {{ book.collector }} @ {{ book.timestamp }} </span>
                 </v-card-text>
             </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="4">
-            <v-card outlined>
+            <v-card outlined v-if="this.err === 'ok'">
                 <v-list>
                     <v-list-item :href="'/read/' + book.id" target="_blank">
                         <v-list-item-avatar large color="primary">
@@ -279,7 +282,7 @@
             </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="4">
-            <v-card outlined>
+            <v-card outlined v-if="this.err === 'ok'">
                 <v-list>
                     <v-list-item @click="dialog_download = !dialog_download">
                         <v-list-item-avatar large color="primary">
@@ -296,7 +299,7 @@
             </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="4">
-            <v-card outlined>
+            <v-card outlined v-if="this.err === 'ok'">
                 <v-list>
                     <v-list-item @click="dialog_kindle = !dialog_kindle">
                         <v-list-item-avatar large color="primary">
@@ -384,10 +387,6 @@ export default {
     methods: {
         init(route, next) {
             this.$store.commit("navbar", true);
-            var rsp = this;
-            if (rsp.err !== "ok") {
-                this.$alert("error", rsp.msg, "/");
-            }
             if (next) next();
         },
         sendto_kindle() {
@@ -461,6 +460,14 @@ export default {
             }
             var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(email) || "Email格式错误";
+        },
+        book_exist: function () {
+            if (this.err !== "ok") {
+                this.$alert("error", this.msg, "/")
+                return false
+            }
+
+            return true
         },
     },
 };

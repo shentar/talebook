@@ -522,6 +522,7 @@ class BookRead(BaseHandler):
 
             # 非管理员，每天限制下载的书本数量。在线阅读PDF，相当于下载PDF。
             self.check_and_increase_download_count()
+            self.count_increase(book_id, count_download=1)
 
             path = book["fmt_pdf"]
             self.set_header("Content-Type", "application/pdf")
