@@ -107,24 +107,6 @@ class Scanner:
         # 检查文件哈希值，检查DB重复情况
         for row in rows:
             fpath = row.path
-
-            # 读取文件，计算哈希值
-            sha256 = hashlib.sha256()
-            with open(fpath, "rb") as f:
-                # Read and update hash string value in blocks of 4K
-                for byte_block in iter(lambda: f.read(4096), b""):
-                    sha256.update(byte_block)
-
-            hash = "sha256:" + sha256.hexdigest()
-            if self.session.query(ScanFile).filter(ScanFile.hash == hash).count() > 0:
-                # 如果已经有相同的哈希值，则删掉本任务
-                row.status = ScanFile.DROP
-            else:
-                # 或者，更新为真实的哈希值
-                row.hash = hash
-            if not self.save_or_rollback(row):
-                continue
-
             # 尝试解析metadata
             fmt = fpath.split(".")[-1].lower()
             with open(fpath, "rb") as stream:
@@ -141,6 +123,22 @@ class Scanner:
             if books:
                 row.book_id = books.pop()
                 row.status = ScanFile.EXIST
+
+            # 使用文件元数据计算Hash值。避免全文读取数据耗时过长。
+            sha256 = hashlib.sha256()
+            sha256.update((row.title if row.title else "").encode("UTF-8"))
+            sha256.update((row.author if row.author else "").encode("UTF-8"))
+            sha256.update((row.publisher if row.publisher else "").encode("UTF-8"))
+            sha256.update((row.tags if row.tags else "").encode("UTF-8"))
+            sha256.update(hex(os.path.getsize(fpath if fpath else "")).encode("UTF-8"))
+            hash_str = "sha256:" + sha256.hexdigest()
+
+            if self.session.query(ScanFile).filter(ScanFile.hash == hash_str).count() > 0:
+                # 如果已经有相同的哈希值，则删掉本任务
+                row.status = ScanFile.DROP
+            else:
+                # 或者，更新为真实的哈希值
+                row.hash = hash_str
             if not self.save_or_rollback(row):
                 continue
         return True
