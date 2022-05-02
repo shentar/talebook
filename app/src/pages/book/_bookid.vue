@@ -137,8 +137,7 @@
                         <v-icon left v-if="!tiny">email</v-icon>
                         推送
                     </v-btn>
-                    <v-btn :small="tiny" dark color="primary" class="mx-2 d-flex d-sm-flex" :href="'/read/' + book.id"
-                           target="_blank">
+                    <v-btn :small="tiny" dark color="primary" class="mx-2 d-flex d-sm-flex" @click="online_read">
                         <v-icon left v-if="!tiny">import_contacts</v-icon>
                         阅读
                     </v-btn>
@@ -267,7 +266,7 @@
         <v-col cols="12" sm="6" md="4">
             <v-card outlined v-if="this.err === 'ok'">
                 <v-list>
-                    <v-list-item :href="'/read/' + book.id" target="_blank">
+                    <v-list-item @click="online_read">
                         <v-list-item-avatar large color="primary">
                             <v-icon dark>import_contacts</v-icon>
                         </v-list-item-avatar>
@@ -408,6 +407,14 @@ export default {
                 }
             });
         },
+        online_read() {
+            const userAgent = window.navigator.userAgent.toLowerCase();
+            if (userAgent.indexOf("micromessenger") === -1) {
+                window.open("/read/" + this.book.id, "_blank");
+            } else {
+                this.$alert("error", "微信无法加载阅读器，请在浏览器中打开后阅读：<br/><br/>1. 点击右上角；<br/>2. 选择“在浏览器打开”。");
+            }
+        },
         get_refer() {
             this.dialog_refer = true;
             this.refer_books_loading = true;
@@ -514,4 +521,5 @@ export default {
 h1.book-detail-title {
     line-height: inherit;
 }
+
 </style>

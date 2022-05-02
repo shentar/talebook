@@ -490,6 +490,10 @@ class BookUpload(BaseHandler):
 
 class BookRead(BaseHandler):
     def get(self, id):
+        ua = self.request.headers.get("user-agent", "agent")
+        if "micromessenger" in ua.lower():
+            raise web.HTTPError(400, reason=_(u"不支持微信打开阅读页面，请在浏览器打开：<br/>1. 请点击右上角按钮<br/>2. 选择【在浏览器中打开】"))
+
         if not CONF["ALLOW_GUEST_READ"]:
             if not self.current_user:
                 return self.redirect("/login?id=%d" % int(id))

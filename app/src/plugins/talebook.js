@@ -22,6 +22,7 @@ export default ({app}, inject) => {
                     "X-Forwarded-For": headers["x-forwarded-for"],
                     "X-Forwarded-Proto": headers["x-forwarded-proto"],
                     "X-Scheme": headers["x-scheme"],
+                    "User-Agent": headers["user-agent"],
                 }
             }
         } else {
