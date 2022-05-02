@@ -27,7 +27,7 @@ export const mutations = {
     }, increment(state) {
         state.count++
     }, login(state, data) {
-        if (data != undefined) {
+        if (data !== undefined) {
             state.sys = data.sys;
             state.user = data.user;
         }
