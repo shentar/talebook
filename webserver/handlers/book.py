@@ -239,7 +239,9 @@ class BookRefer(BaseHandler):
         refer_mi = self.plugin_get_book_meta(provider_key, provider_value, mi)
         if only_cover == "yes":
             # just set cover
+            from calibre.utils.date import utcnow
             mi.cover_data = refer_mi.cover_data
+            mi.timestamp = utcnow()
         else:
             if only_meta == "yes":
                 refer_mi.cover_data = None
