@@ -102,6 +102,7 @@ class BookDetail(BaseHandler):
     @js
     def get(self, id):
         book = self.get_book(id)
+        self.user_history("visit_history", id)
         self.count_increase(id, count_visit=1)
         return {
             "err": "ok",
@@ -352,7 +353,7 @@ class BookDownload(BaseHandler):
         logging.debug("download %s.%s" % (id, fmt))
         book = self.get_book(id)
         book_id = book["id"]
-        self.user_history("download_history", book)
+        self.user_history("download_history", book_id)
         self.count_increase(book_id, count_download=1)
         if "fmt_%s" % fmt not in book:
             raise web.HTTPError(404, reason=_(u"%s格式无法下载" % fmt))
@@ -479,7 +480,7 @@ class BookUpload(BaseHandler):
         # 导入成功则删除源文件
         os.remove(fpath)
 
-        self.user_history("upload_history", {"id": book_id, "title": mi.title})
+        self.user_history("upload_history", book_id)
         self.add_msg("success", _(u"导入书籍成功！"))
         item = Item()
         item.book_id = book_id
@@ -502,7 +503,7 @@ class BookRead(BaseHandler):
 
         book = self.get_book(id)
         book_id = book["id"]
-        self.user_history("read_history", book)
+        self.user_history("read_history", book_id)
         self.count_increase(book_id, count_visit=1)
 
         # check format
@@ -597,7 +598,7 @@ class BookPush(BaseHandler):
         book = self.get_book(id)
         book_id = book["id"]
 
-        self.user_history("push_history", book)
+        self.user_history("push_history", book_id)
         self.count_increase(book_id, count_download=1)
 
         # check format

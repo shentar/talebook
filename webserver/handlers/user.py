@@ -356,21 +356,24 @@ class UserInfo(BaseHandler):
             d["kindle_email"] = user.extra.get("kindle_email", "")
             if detail:
                 for k, v in user.extra.items():
-                    if k.endswith("_history"):
-                        ids = [b["id"] for b in v][:24]
-                        books = self.db.get_data_as_dict(ids=ids)
-                        show = set([b["id"] for b in books])
-                        n = []
-                        for b in v:
-                            if b["id"] not in show:
-                                continue
-                            b["img"] = self.cdn_url + "/get/cover/%(id)s.jpg?t=%(timestamp)s" % b
-                            b["href"] = "/book/%(id)s" % b
-                            n.append(b)
-                        v = n[:12]
+                    if not k.endswith("_history"):
+                        continue
 
-                    d["extra"][k] = v
-
+                    hbs = {}
+                    hb_list = []
+                    books = self.db.get_data_as_dict(ids=v)
+                    for b in books:
+                        hb = {
+                            "id": b["id"],
+                            "img": self.cdn_url + "/get/cover/%(id)s.jpg?t=%(timestamp)s" % b,
+                            "href": "/book/%(id)s" % b,
+                            "title": b["title"]
+                        }
+                        hbs[hb["id"]] = hb
+                    for idx in v:
+                        if idx in hbs:
+                            hb_list.append(hbs[idx])
+                    d["extra"][k] = hb_list
         return d
 
     @js

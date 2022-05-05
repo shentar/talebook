@@ -253,23 +253,19 @@ class BaseHandler(web.RequestHandler):
         return messages
 
     def user_history(self, action, book):
+        book_id = int(book)
         if not self.user_id():
             return
         extra = self.current_user.extra
         history = extra.get(action, [])
-        for val in history[:12]:
-            if val["id"] == book["id"]:
-                return
-        val = {
-            "id": book["id"],
-            "title": book["title"],
-            "timestamp": int(time.time()),
-        }
-        history.insert(0, val)
-        # an item is about 100Byte, sqlite's max length is 32KB
-        # we have five type of history, so make a average limit of max history
-        ITEM_COUNT_LIMIT = 60  # = 32KB/100B/5
-        extra[action] = history[:ITEM_COUNT_LIMIT]
+        if len(history) > 0:
+            for i in range(0, len(history)):
+                if history[i] == book_id:
+                    history.pop(i)
+                    break
+
+        history.insert(0, book_id)
+        extra[action] = history
         user = self.current_user
         user.extra.update(extra)
         user.save()
