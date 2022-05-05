@@ -13,9 +13,9 @@
             <v-col cols=12 v-if="item.books.length==0">
                 <p class="pb-6">无记录</p>
             </v-col>
-            <v-col cols=4 sm=2 v-else v-for="book in item.books" :key="item.name + book.id">
+            <v-col cols=12 xs=6 sm=4 md=2 lg=1 v-else v-for="book in item.books" :key="item.name + book.id">
                 <a :href="book.href" target="_blank">
-                    <v-img :src="book.img" :alt="book.title"></v-img>
+                    <v-img :src="book.img" :alt="book.title" :aspect-ratio="11/15"></v-img>
                 </a>
             </v-col>
         </v-row>

@@ -1,13 +1,13 @@
 <template>
     <v-row>
-        <v-col cols=12 xs=12 sm=6 md=4 v-for="(book,idx) in render_books" :key="idx+'-books-'+book.id"
+        <v-col cols=12 xs=12 sm=6 md=4 lg=3 v-for="(book,idx) in render_books" :key="idx+'-books-'+book.id"
                class="book-list-card">
             <v-card :href="book.href" target="_blank">
                 <v-row>
-                    <v-col cols=3 class='col-book-img'>
+                    <v-col cols=4 class='col-book-img'>
                         <v-img :src="book.img" :aspect-ratio="11/15"></v-img>
                     </v-col>
-                    <v-col cols=9 class='col-book-info'>
+                    <v-col cols=8 class='col-book-info'>
                         <v-card-text class="pb-0" align-left>
                             <div class="book-title">{{ book.title }}</div>
                             <slot name="introduce" :book="book"></slot>
@@ -52,7 +52,7 @@ export default {
     /*height: 1em;*/
     overflow-y: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     text-overflow: clip;
     text-align: left;
@@ -62,7 +62,7 @@ export default {
 .book-comments {
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 6;
     -webkit-box-orient: vertical;
     text-overflow: clip;
     margin-top: 6px;

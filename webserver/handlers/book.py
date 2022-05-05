@@ -385,7 +385,7 @@ class BookNav(ListHandler):
 
 class RecentBook(ListHandler):
     def get(self):
-        title = _(u"新书推荐")
+        title = _(u"所有书籍")
         ids = self.books_by_id()
         return self.render_book_list([], ids=ids, title=title, sort_by_id=True)
 
