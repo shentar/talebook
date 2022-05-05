@@ -145,11 +145,9 @@
                     <template v-if="book.is_owner">
                         <v-menu offset-y>
                             <template v-slot:activator="{ on }">
-                                <v-btn v-on="on" dark color="primary" class="ml-2" :small="tiny"
-                                >管理
+                                <v-btn v-on="on" dark color="primary" class="ml-2" :small="tiny">管理
                                     <v-icon small>more_vert</v-icon>
-                                </v-btn
-                                >
+                                </v-btn>
                             </template>
                             <v-list>
                                 <v-list-item :to="'/book/' + book.id + '/edit'">
@@ -403,7 +401,7 @@ export default {
                 if (rsp.err === "ok") {
                     this.$alert("success", rsp.msg, "#");
                 } else {
-                    this.$alert("error", rsp.msg, "#");
+                    this.$alert("error", rsp.msg, rsp.to);
                 }
             });
         },

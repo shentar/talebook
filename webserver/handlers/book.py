@@ -17,7 +17,7 @@ import tornado.escape
 from tornado import web
 
 from webserver import constants, loader, utils
-from webserver.handlers.base import BaseHandler, ListHandler, js, auth
+from webserver.handlers.base import BaseHandler, ListHandler, js
 from webserver.models import Item
 from webserver.plugins.meta import baike, douban
 from webserver.utils import check_email
@@ -434,8 +434,10 @@ class BookUpload(BaseHandler):
         return (p["filename"], p["body"])
 
     @js
-    @auth
     def post(self):
+        if not self.current_user:
+            return {"err": "need_login", "msg": _(u"请先登录"), "to": "/login"}
+
         if not self.current_user.can_upload(check=True):
             return {"err": "permission", "msg": _(u"无权上传书籍")}
 
@@ -588,7 +590,7 @@ class BookPush(BaseHandler):
 
         if not CONF["ALLOW_GUEST_PUSH"]:
             if not self.current_user:
-                return {"err": "permission", "msg": _(u"不支持未登录用户推送书籍，请先登录账号。")}
+                return {"err": "permission", "msg": _(u"不支持未登录用户推送书籍，请先登录账号。"), "to": "/login?id=%s" % str(id)}
             elif not self.current_user.can_push(check=True):
                 return {"err": "permission", "msg": _(u"无权推送书籍")}
 

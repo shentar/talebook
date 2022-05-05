@@ -52,7 +52,7 @@ export default {
                         this.$alert("error", rsp.msg, "/book/" + rsp.book_id);
                         this.$router.push("/book/" + rsp.book_id)
                     } else {
-                        this.$alert("error", rsp.msg);
+                        this.$alert("error", rsp.msg, rsp.to);
                     }
                 })
                 .finally(() => {
