@@ -61,7 +61,6 @@ class BaiduBaikeApi:
         if pd is None:
             pd = utcnow()
         mi.pubdate = pd
-        mi.timestamp = mi.pubdate
         mi.cover_url = baike.get_image()
         mi.comments = re.sub(r"\[\d+\]$", "", baike.get_summary())
         mi.website = baike.http.url

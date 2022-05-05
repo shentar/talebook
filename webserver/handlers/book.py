@@ -241,7 +241,6 @@ class BookRefer(BaseHandler):
             # just set cover
             from calibre.utils.date import utcnow
             mi.cover_data = refer_mi.cover_data
-            mi.timestamp = utcnow()
         else:
             if only_meta == "yes":
                 refer_mi.cover_data = None

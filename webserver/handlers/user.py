@@ -365,7 +365,7 @@ class UserInfo(BaseHandler):
                     for b in books:
                         hb = {
                             "id": b["id"],
-                            "img": self.cdn_url + "/get/cover/%(id)s.jpg?t=%(timestamp)s" % b,
+                            "img": self.cdn_url + "/get/cover/%(id)s.jpg?t=%(last_modified)s" % b,
                             "href": "/book/%(id)s" % b,
                             "title": b["title"]
                         }

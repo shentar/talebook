@@ -32,12 +32,12 @@ class SimpleBookFormatter:
 
     def format(self):
         b = self.book
-        b["ts"] = b["timestamp"].strftime("%s")
+        b["ts"] = b["last_modified"].strftime("%s")
         return {
             "id": b["id"],
             "title": b["title"],
             "rating": b["rating"],
-            "timestamp": self.val("timestamp"),
+            "timestamp": self.val("last_modified"),
             "pubdate": self.val("pubdate"),
             "author": ", ".join(b["authors"]),
             "authors": b["authors"],

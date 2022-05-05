@@ -159,7 +159,6 @@ class DoubanBookApi(object):
         mi.tags = [t["name"] for t in book["tags"]][:8]
         mi.rating = int(float(book["rating"]["average"]))
         mi.pubdate = str2date(book["pubdate"])
-        mi.timestamp = utcnow()
         mi.douban_author_intro = book["author_intro"]
         mi.douban_subtitle = book.get("subtitle", None)
         mi.website = "https://book.douban.com/subject/%s/" % book["id"]
