@@ -1,7 +1,8 @@
 <script>
- // don't create a template for the section
+// don't create a template for the section
 import ListBook from '~/pages/ListBook.vue'
-ListBook.head = function() {
+
+ListBook.head = function () {
     var name = decodeURIComponent(this.$route.params.name);
     var titles = {
         tag: `"${name}”标签的书籍`,
@@ -11,7 +12,7 @@ ListBook.head = function() {
         publisher: `${name}出版的书籍`,
     }
     var meta = this.$route.path.split("/")[1];
-    if ( titles[meta] !== undefined ) {
+    if (titles[meta] !== undefined) {
         return {
             title: titles[meta]
         }

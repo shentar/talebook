@@ -1,14 +1,23 @@
 <template>
     <v-card>
-        <v-card-title> 图书管理 <v-chip small class="primary">Beta</v-chip> </v-card-title>
+        <v-card-title> 图书管理
+            <v-chip small class="primary">Beta</v-chip>
+        </v-card-title>
         <v-card-text> 此表格仅展示图书的部分字段，点击即可快捷修改。完整图书信息请点击链接查看书籍详情页面</v-card-text>
         <v-card-actions>
-            <v-btn :disabled="loading" outlined color="primary" @click="getDataFromApi"><v-icon>mdi-reload</v-icon>刷新</v-btn>
+            <v-btn :disabled="loading" outlined color="primary" @click="getDataFromApi">
+                <v-icon>mdi-reload</v-icon>
+                刷新
+            </v-btn>
             <template v-if="books_selected.length > 0">
-                <v-btn :disabled="loading" outlined color="info" @click="auto_fetch"><v-icon>mdi-delete</v-icon>自动填充空缺字段 </v-btn>
+                <v-btn :disabled="loading" outlined color="info" @click="auto_fetch">
+                    <v-icon>mdi-delete</v-icon>
+                    自动填充空缺字段
+                </v-btn>
             </template>
             <v-spacer></v-spacer>
-            <v-text-field cols="2" dense v-model="search" append-icon="mdi-magnify" label="搜索" single-line hide-details></v-text-field>
+            <v-text-field cols="2" dense v-model="search" append-icon="mdi-magnify" label="搜索" single-line
+                          hide-details></v-text-field>
         </v-card-actions>
         <v-data-table
             dense
@@ -33,13 +42,16 @@
                 <v-chip small v-else class="info">{{ item.status }}</v-chip>
             </template>
             <template v-slot:item.img="{ item }">
-                <a target="_blank" :href="item.img"><v-img :src="item.thumb" class="my-1" max-height="80"  :aspect-ratio="3/4" /></a>
+                <a target="_blank" :href="item.img">
+                    <v-img :src="item.thumb" class="my-1" max-height="80" :aspect-ratio="3/4"/>
+                </a>
             </template>
             <template v-slot:item.id="{ item }">
                 <a target="_blank" :href="`/book/${item.id}`">{{ item.id }}</a>
             </template>
             <template v-slot:item.title="{ item }">
-                <v-edit-dialog large :return-value.sync="item.title" @save="save(item, 'title')" save-text="保存" cancel-text="取消">
+                <v-edit-dialog large :return-value.sync="item.title" @save="save(item, 'title')" save-text="保存"
+                               cancel-text="取消">
                     <span class="three-lines" style="max-width: 200px">{{ item.title }}</span>
 
                     <template v-slot:input>
@@ -50,8 +62,11 @@
             </template>
 
             <template v-slot:item.author="{ item }">
-                <v-edit-dialog large :return-value.sync="item.author" @save="save(item, 'authors')" save-text="保存" cancel-text="取消">
-                    <span class="three-lines" style="max-width: 200px" v-if="item.authors">{{ item.authors.join("/") }}</span>
+                <v-edit-dialog large :return-value.sync="item.author" @save="save(item, 'authors')" save-text="保存"
+                               cancel-text="取消">
+                    <span class="three-lines" style="max-width: 200px" v-if="item.authors">{{
+                            item.authors.join("/")
+                        }}</span>
                     <span v-else> - </span>
                     <template v-slot:input>
                         <!-- AUTHORS -->
@@ -63,14 +78,13 @@
                             :search-input.sync="tag_input"
                             hide-selected
                             multiple
-                            small-chips
-                        >
+                            small-chips>
                             <template v-slot:no-data>
                                 <v-list-item>
                                     <span v-if="!tag_input">请输入新的名称</span>
                                     <div v-else>
                                         <span class="subheading">添加</span>
-                                        <v-chip color="green lighten-3" label small rounded> {{ tag_input }} </v-chip>
+                                        <v-chip color="green lighten-3" label small rounded> {{ tag_input }}</v-chip>
                                     </div>
                                 </v-list-item>
                             </template>
@@ -87,7 +101,8 @@
             </template>
 
             <template v-slot:item.rating="{ item }">
-                <v-edit-dialog large :return-value.sync="item.rating" @save="save(item, 'rating')" save-text="保存" cancel-text="取消">
+                <v-edit-dialog large :return-value.sync="item.rating" @save="save(item, 'rating')" save-text="保存"
+                               cancel-text="取消">
                     <span v-if="item.rating != null">{{ item.rating }} 星</span>
                     <span v-else> - </span>
                     <template v-slot:input>
@@ -114,7 +129,8 @@
             </template>
 
             <template v-slot:item.tags="{ item }">
-                <v-edit-dialog large :return-value.sync="item.tags" @save="save(item, 'tags')" save-text="保存" cancel-text="取消">
+                <v-edit-dialog large :return-value.sync="item.tags" @save="save(item, 'tags')" save-text="保存"
+                               cancel-text="取消">
                     <span style="width: 200px" class="three-lines" v-if="item.tags">{{ item.tags.join("/") }}</span>
                     <span v-else> - </span>
                     <template v-slot:input>
@@ -134,7 +150,7 @@
                                     <span v-if="!tag_input">请输入新的标签名称</span>
                                     <div v-else>
                                         <span class="subheading">添加标签</span>
-                                        <v-chip color="green lighten-3" label small rounded> {{ tag_input }} </v-chip>
+                                        <v-chip color="green lighten-3" label small rounded> {{ tag_input }}</v-chip>
                                     </div>
                                 </v-list-item>
                             </template>
@@ -151,7 +167,8 @@
             </template>
 
             <template v-slot:item.comments="{ item }">
-                <v-edit-dialog large :return-value.sync="item.comments" @save="save(item, 'comments')" save-text="保存" cancel-text="取消">
+                <v-edit-dialog large :return-value.sync="item.comments" @save="save(item, 'comments')" save-text="保存"
+                               cancel-text="取消">
                     <span :title="item.comments" style="width: 300px" class="three-lines">{{ item.comments }}</span>
                     <template v-slot:input>
                         <div class="mt-4 text-h6">修改字段</div>
@@ -162,7 +179,9 @@
             <template v-slot:item.actions="{ item }">
                 <v-menu offset-y right>
                     <template v-slot:activator="{ on }">
-                        <v-btn color="primary" small v-on="on">操作 <v-icon small>more_vert</v-icon></v-btn>
+                        <v-btn color="primary" small v-on="on">操作
+                            <v-icon small>more_vert</v-icon>
+                        </v-btn>
                     </template>
                     <v-list dense>
                         <v-list-item @click="delete_book(item)">
@@ -178,7 +197,7 @@
             {{ snackText }}
 
             <template v-slot:action="{ attrs }">
-                <v-btn v-bind="attrs" text @click="snack = false"> 关闭 </v-btn>
+                <v-btn v-bind="attrs" text @click="snack = false"> 关闭</v-btn>
             </template>
         </v-snackbar>
     </v-card>
@@ -198,17 +217,17 @@ export default {
         items: [],
         total: 0,
         loading: false,
-        options: { sortBy: ["id"], sortDesc: [true] },
+        options: {sortBy: ["id"], sortDesc: [true]},
         headers: [
-            { text: "封面", sortable: false, value: "img", width: "80px" },
-            { text: "ID", sortable: true, value: "id", width: "80px" },
-            { text: "书名", sortable: true, value: "title" },
-            { text: "作者", sortable: true, value: "author", width: "100px" },
-            { text: "评分", sortable: false, value: "rating", width: "60px" },
-            { text: "出版社", sortable: false, value: "publisher" },
-            { text: "标签", sortable: true, value: "tags", width: "100px" },
-            { text: "简介", sortable: true, value: "comments" },
-            { text: "操作", sortable: false, value: "actions" },
+            {text: "封面", sortable: false, value: "img", width: "80px"},
+            {text: "ID", sortable: true, value: "id", width: "80px"},
+            {text: "书名", sortable: true, value: "title"},
+            {text: "作者", sortable: true, value: "author", width: "100px"},
+            {text: "评分", sortable: false, value: "rating", width: "60px"},
+            {text: "出版社", sortable: false, value: "publisher"},
+            {text: "标签", sortable: true, value: "tags", width: "100px"},
+            {text: "简介", sortable: true, value: "comments"},
+            {text: "操作", sortable: false, value: "actions"},
         ],
         progress: {
             done: 0,
@@ -216,7 +235,8 @@ export default {
             status: "finish",
         },
     }),
-    created() {},
+    created() {
+    },
     watch: {
         options: {
             handler() {
@@ -229,7 +249,7 @@ export default {
         getDataFromApi() {
             console.log(this.options);
             this.loading = true;
-            const { sortBy, sortDesc, page, itemsPerPage } = this.options;
+            const {sortBy, sortDesc, page, itemsPerPage} = this.options;
 
             var data = new URLSearchParams();
             if (page != undefined) {

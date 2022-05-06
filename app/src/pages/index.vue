@@ -2,7 +2,12 @@
     <div>
         <v-row>
             <v-col cols=12>
-                <p class="ma-0 title">随机推荐</p>
+                <a class="ma-0 title" @click="fetch_books(true)" title="换一批" style="color:#000000">随机推荐
+                    <v-icon>mdi-reload</v-icon>
+                </a>
+            </v-col>
+            <v-col cols=12 class="new-legend">
+                <v-divider/>
             </v-col>
             <v-col cols=4 xs=4 sm=4 md=2 lg=1 v-for="(book,idx) in get_random_books" :key="'rec'+idx+book.id">
                 <v-card :to="book.href" class="ma-1">
@@ -12,18 +17,18 @@
         </v-row>
         <v-row>
             <v-col cols=12>
-                <v-divider class="new-legend"></v-divider>
-                <p class="ma-0 title">新书推荐</p>
+                <a class="ma-0 title" @click="fetch_books(false)" title="换一批" style="color:#000000">新书推荐
+                    <v-icon>mdi-reload</v-icon>
+                </a>
             </v-col>
-            <v-col cols=12>
+            <v-col cols=12 class="new-legend">
+                <v-divider/>
+            </v-col>
+            <v-col cols=12 style="padding-top: 30px">
                 <book-cards :books="get_recent_books"></book-cards>
             </v-col>
         </v-row>
-        <v-row>
-            <v-col cols=12>
-                <v-divider class="new-legend"></v-divider>
-                <p class="ma-0 title">分类浏览</p>
-            </v-col>
+        <v-row style="padding-top: 40px">
             <v-col cols=12 sm=6 md=4 v-for="nav in navs" :key="nav.text">
                 <v-card outlined>
                     <v-list>
@@ -92,13 +97,32 @@ export default {
     }),
     head: () => ({
         titleTemplate: "%s",
-    })
+    }),
+    methods: {
+        fetch_books(isRandom) {
+            let dst_uri = "/index?recent=12";
+            if (isRandom) {
+                dst_uri = "/index?random=12"
+            }
+            this.$backend(dst_uri).then((rsp) => {
+                    if (isRandom) {
+                        this.random_books = rsp.random_books
+                    } else {
+                        this.new_books = rsp.new_books
+                    }
+                }
+            )
+        }
+    }
+
 }
 </script>
 
 <style>
 .new-legend {
-    margin-top: 30px;
-    margin-bottom: 20px;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 </style>

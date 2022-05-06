@@ -1,6 +1,6 @@
 <template>
     <v-card>
-        <v-card-title> 用户管理 </v-card-title>
+        <v-card-title> 用户管理</v-card-title>
         <v-data-table
             :headers="headers"
             :items="items"
@@ -22,14 +22,18 @@
             <template v-slot:item.actions="{ item }">
                 <v-menu offset-y right>
                     <template v-slot:activator="{ on }">
-                        <v-btn color="primary" small v-on="on">操作 <v-icon small>more_vert</v-icon></v-btn>
+                        <v-btn color="primary" small v-on="on">操作
+                            <v-icon small>more_vert</v-icon>
+                        </v-btn>
                     </template>
                     <v-list dense>
                         <v-subheader>修改用户权限</v-subheader>
                         <template v-for="perm in permissions">
                             <v-list-item :key="'disable-' + perm.name" v-if="item[perm.name]">
                                 <v-list-item-title
-                                    ><v-icon color="success">mdi-account-check</v-icon> 已允许{{ perm.text }}
+                                >
+                                    <v-icon color="success">mdi-account-check</v-icon>
+                                    已允许{{ perm.text }}
                                 </v-list-item-title>
                                 <v-list-item-action>
                                     <v-btn
@@ -47,7 +51,9 @@
                             </v-list-item>
                             <v-list-item :key="'enable-' + perm.name" v-else>
                                 <v-list-item-title
-                                    ><v-icon color="danger">mdi-account-remove</v-icon> 已禁止{{ perm.text }}
+                                >
+                                    <v-icon color="danger">mdi-account-remove</v-icon>
+                                    已禁止{{ perm.text }}
                                 </v-list-item-title>
                                 <v-list-item-action>
                                     <v-btn
@@ -74,7 +80,7 @@
                                 item.is_active = true;
                             "
                         >
-                            <v-list-item-title> 免邮箱认证，直接激活账户 </v-list-item-title>
+                            <v-list-item-title> 免邮箱认证，直接激活账户</v-list-item-title>
                         </v-list-item>
                         <v-list-item
                             v-if="item.is_admin"
@@ -83,7 +89,7 @@
                                 item.is_admin = !item.is_admin;
                             "
                         >
-                            <v-list-item-title> 取消管理员 </v-list-item-title>
+                            <v-list-item-title> 取消管理员</v-list-item-title>
                         </v-list-item>
                         <v-list-item
                             v-else
@@ -92,7 +98,7 @@
                                 item.is_admin = item.is_admin = !item.is_admin;
                             "
                         >
-                            <v-list-item-title> 设置为管理员 </v-list-item-title>
+                            <v-list-item-title> 设置为管理员</v-list-item-title>
                         </v-list-item>
                         <v-list-item
                             @click="
@@ -100,7 +106,7 @@
                                 getDataFromApi()
                             "
                         >
-                            <v-list-item-title> 立即删除该用户 </v-list-item-title>
+                            <v-list-item-title> 立即删除该用户</v-list-item-title>
                         </v-list-item>
                     </v-list>
                 </v-menu>
@@ -116,27 +122,27 @@ export default {
         items: [],
         total: 0,
         loading: true,
-        options: { sortBy: ["id"], sortDesc: [true] },
+        options: {sortBy: ["id"], sortDesc: [true]},
         headers: [
-            { text: "ID", sortable: true, value: "id" },
-            { text: "用户名", sortable: true, value: "username" },
-            { text: "昵称", sortable: false, value: "name" },
-            { text: "Email", sortable: true, value: "email" },
-            { text: "注册平台", sortable: false, value: "provider" },
-            { text: "注册时间", sortable: true, value: "create_time" },
-            { text: "登录时间", sortable: true, value: "access_time" },
-            { text: "登录IP", sortable: false, value: "login_ip" },
-            { text: "详情", sortable: false, value: "detail" },
-            { text: "操作", sortable: false, value: "actions" },
+            {text: "ID", sortable: true, value: "id"},
+            {text: "用户名", sortable: true, value: "username"},
+            {text: "昵称", sortable: false, value: "name"},
+            {text: "Email", sortable: true, value: "email"},
+            {text: "注册平台", sortable: false, value: "provider"},
+            {text: "注册时间", sortable: true, value: "create_time"},
+            {text: "登录时间", sortable: true, value: "access_time"},
+            {text: "登录IP", sortable: false, value: "login_ip"},
+            {text: "详情", sortable: false, value: "detail"},
+            {text: "操作", sortable: false, value: "actions"},
         ],
         permissions: [
-            { code: "l", name: "can_login", text: "登录" },
-            { code: "u", name: "can_upload", text: "上传" },
-            { code: "s", name: "can_save", text: "下载" },
-            { code: "e", name: "can_edit", text: "编辑" },
-            { code: "d", name: "can_delete", text: "删除" },
-            { code: "p", name: "can_push", text: "推送" },
-            { code: "r", name: "can_read", text: "在线阅读" },
+            {code: "l", name: "can_login", text: "登录"},
+            {code: "u", name: "can_upload", text: "上传"},
+            {code: "s", name: "can_save", text: "下载"},
+            {code: "e", name: "can_edit", text: "编辑"},
+            {code: "d", name: "can_delete", text: "删除"},
+            {code: "p", name: "can_push", text: "推送"},
+            {code: "r", name: "can_read", text: "在线阅读"},
         ],
     }),
     watch: {
@@ -158,7 +164,7 @@ export default {
     methods: {
         getDataFromApi() {
             this.loading = true;
-            const { sortBy, sortDesc, page, itemsPerPage } = this.options;
+            const {sortBy, sortDesc, page, itemsPerPage} = this.options;
 
             var data = new URLSearchParams();
             if (page != undefined) {

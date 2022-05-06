@@ -179,7 +179,7 @@
                 </v-row>
                 <v-row v-else>
                     <v-col class="ma-auto" cols="8" sm="4">
-                        <v-img class="book-img" :src="book.img" :aspect-ratio="11 / 15" max-height="500px"
+                        <v-img :src="book.img" :aspect-ratio="11/15" max-height="500px" class="book-img"
                                contain></v-img>
                     </v-col>
                     <v-col cols="12" sm="8">

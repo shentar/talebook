@@ -73,22 +73,24 @@ class Index(BaseHandler):
 
     @js
     def get(self):
-        cnt_random = min(int(self.get_argument("random", 8)), 30)
-        cnt_recent = min(int(self.get_argument("recent", 10)), 30)
+        cnt_random = min(int(self.get_argument("random", "0")), 30)
+        cnt_recent = min(int(self.get_argument("recent", "0")), 30)
 
-        # nav = "index"
-        # title = _(u"全部书籍")
         ids = list(self.cache.search(""))
         if not ids:
             raise web.HTTPError(404, reason=_(u"本书库暂无藏书"))
-        random_ids = random.sample(ids, min(cnt_random, len(ids)))
-        random_books = [b for b in self.get_books(ids=random_ids) if b["cover"]]
-        random_books.sort(key=lambda x: x["id"], reverse=True)
 
-        ids.sort(reverse=True)
-        new_ids = random.sample(ids[0:100], min(cnt_recent, len(ids)))
-        new_books = [b for b in self.get_books(ids=new_ids) if b["cover"]]
-        new_books.sort(key=lambda x: x["id"], reverse=True)
+        random_books = []
+        new_books = []
+        if cnt_random > 0:
+            random_ids = random.sample(ids, min(cnt_random, len(ids)))
+            random_books = [b for b in self.get_books(ids=random_ids) if b["cover"]]
+            random_books.sort(key=lambda x: x["id"], reverse=True)
+        if cnt_recent > 0:
+            ids.sort(reverse=True)
+            new_ids = random.sample(ids[0:100], min(cnt_recent, len(ids)))
+            new_books = [b for b in self.get_books(ids=new_ids) if b["cover"]]
+            new_books.sort(key=lambda x: x["id"], reverse=True)
 
         return {
             "random_books_count": len(random_books),
