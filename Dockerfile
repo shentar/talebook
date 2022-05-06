@@ -18,7 +18,6 @@ RUN npm install
 
 # spa build mode will clear ssr build data, run it first
 COPY app/ /app/
-RUN npm run build-spa
 RUN npm run build
 
 #RUN rm -rf node_modules && npm install  --production
@@ -77,17 +76,14 @@ COPY . /var/www/talebook/
 COPY conf/nginx/ssl.* /data/books/ssl/
 COPY conf/nginx/talebook.conf /etc/nginx/conf.d/talebook.conf
 COPY conf/supervisor/talebook.conf /etc/supervisor/conf.d/
-COPY --from=builder /app/dist/ /var/www/talebook/app/dist/
 COPY --from=builder /app/.nuxt/ /var/www/talebook/app/.nuxt/
 COPY --from=builder /app/node_modules/ /var/www/talebook/app/node_modules/
 
 RUN rm -f /etc/nginx/sites-enabled/default /var/www/html -rf && \
     cd /var/www/talebook/ && \
     echo "VERSION = \"$GIT_VERSION\"" > webserver/version.py && \
-    cp app/dist/index.html webserver/resources/index.html && \
     echo 'settings = {}' > /data/books/settings/auto.py && \
     chmod a+w /data/books/settings/auto.py && \
-    chmod a+w app/dist/index.html && \
     calibredb add --library-path=/data/books/library/ -r docker/book/ && \
     python3 server.py --syncdb  && \
     python3 server.py --update-config  && \

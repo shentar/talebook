@@ -1,7 +1,7 @@
 export default {
     srcDir: 'src/', // Global page headers: https://go.nuxtjs.dev/config-head
     head: {
-        title: "talebook", titleTemplate: "%s | talebook", htmlAttrs: {
+        title: "代码人生", titleTemplate: "%s | 代码人生", htmlAttrs: {
             lang: 'en'
         }, meta: [{charset: 'utf-8'}, {
             name: 'format-detection', content: 'telephone=no'
@@ -43,11 +43,8 @@ export default {
     },
 
     publicRuntimeConfig: {
-        head: {
-            title: process.env.TITLE || "talebook", titleTemplate: process.env.TITLE_TEMPLATE || " %s | talebook"
-        }, api_url: process.env.API_URL || "http://127.0.0.1:8000", googleAnalytics: {
-            id: process.env.GOOGLE_ANALYTICS_ID
-        }
+        head: {title: process.env.TITLE || "代码人生", titleTemplate: process.env.TITLE_TEMPLATE || " %s | 代码人生"},
+        api_url: process.env.API_URL || "http://127.0.0.1:8000"
     },
 
     server: {
@@ -56,5 +53,7 @@ export default {
     },
 
     // Build Configuration: https://go.nuxtjs.dev/config-build
-    build: {}
+    build: {
+        cache: true, parallel: true
+    }
 }

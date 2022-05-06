@@ -164,8 +164,6 @@ class SettingsSaverLogic:
         nuxtjs_env = """
 TITLE="%(site_title)s"
 TITLE_TEMPLATE="%%s | %(site_title)s"
-GOOGLE_ANALYTICS_ID=%(google_analytics_id)s
-
 """
         with open(CONF["nuxt_env_path"], "w") as f:
             f.write(nuxtjs_env % CONF)
