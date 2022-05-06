@@ -615,4 +615,4 @@ class ListHandler(BaseHandler):
         }
 
     def fmt(self, b):
-        return utils.BookFormatter(self, b).format()
+        return utils.BookFormatter(self, b).format(for_list_card=True)

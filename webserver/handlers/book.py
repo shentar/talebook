@@ -69,7 +69,7 @@ def do_ebook_convert(old_path, new_path, log_path):
 
 class Index(BaseHandler):
     def fmt(self, b):
-        return utils.BookFormatter(self, b).format()
+        return utils.BookFormatter(self, b).format(for_list_card=True)
 
     @js
     def get(self):
@@ -239,7 +239,6 @@ class BookRefer(BaseHandler):
         refer_mi = self.plugin_get_book_meta(provider_key, provider_value, mi)
         if only_cover == "yes":
             # just set cover
-            from calibre.utils.date import utcnow
             mi.cover_data = refer_mi.cover_data
         else:
             if only_meta == "yes":

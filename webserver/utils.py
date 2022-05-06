@@ -58,6 +58,20 @@ class SimpleBookFormatter:
         }
 
 
+class BrefInfoFormatter(SimpleBookFormatter):
+    """格式化摘要信息"""
+
+    def format(self):
+        b = self.book
+        b["ts"] = b["last_modified"].strftime("%s")
+        return {
+            "id": b["id"],
+            "title": b["title"],
+            "comments": self.val("comments", _(u"暂无简介")),
+            "img": self.cdn_url + "/get/cover/%(id)s.jpg?t=%(ts)s" % b,
+        }
+
+
 class BookFormatter:
     def __init__(self, tornado_handler, calibre_book_item):
         self.db = tornado_handler.db
@@ -90,19 +104,24 @@ class BookFormatter:
             "is_owner": h.is_admin() or h.is_book_owner(self.book["id"], h.user_id()),
         }
 
-    def format(self, with_files=False, with_perms=False):
-        f = SimpleBookFormatter(self.book, self.cdn_url)
+    def format(self, with_files=False, with_perms=False, for_list_card=False):
+        if for_list_card:
+            f = BrefInfoFormatter(self.book, self.cdn_url)
+        else:
+            f = SimpleBookFormatter(self.book, self.cdn_url)
+
         data = f.format()
-        data.update(
-            {
-                "author_url": self.api_url + "/author/" + f.val("author_sort"),
-                "publisher_url": self.api_url + "/publisher/" + f.val("publisher"),
-            }
-        )
-        if with_files:
-            data["files"] = self.get_files()
-        if with_perms:
-            data.update(self.get_permissions())
+        if not for_list_card:
+            data.update(
+                {
+                    "author_url": self.api_url + "/author/" + f.val("author_sort"),
+                    "publisher_url": self.api_url + "/publisher/" + f.val("publisher"),
+                }
+            )
+            if with_files:
+                data["files"] = self.get_files()
+            if with_perms:
+                data.update(self.get_permissions())
         return data
 
 

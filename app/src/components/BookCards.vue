@@ -5,7 +5,7 @@
             <v-card :href="book.href" target="_blank">
                 <v-row>
                     <v-col cols=4 class='col-book-img'>
-                        <v-img :src="book.img" :aspect-ratio="11/15"></v-img>
+                        <v-img :src="book.img" :title="book.title" :aspect-ratio="11/15"></v-img>
                     </v-col>
                     <v-col cols=8 class='col-book-info'>
                         <v-card-text class="pb-0" align-left>
@@ -62,7 +62,7 @@ export default {
 .book-comments {
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 6;
+    -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
     text-overflow: clip;
     margin-top: 6px;
