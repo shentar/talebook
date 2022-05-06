@@ -5,7 +5,7 @@
             <v-card :href="book.href" target="_blank">
                 <v-row>
                     <v-col cols=4 class='col-book-img'>
-                        <v-img :src="book.img" :title="book.title" :aspect-ratio="11/15"></v-img>
+                        <v-img :src="book.img" :title="book.title" :aspect-ratio="11/15" class="book-img-card"></v-img>
                     </v-col>
                     <v-col cols=8 class='col-book-info'>
                         <v-card-text class="pb-0" align-left>
@@ -96,6 +96,10 @@ export default {
     padding: 0;
     margin-left: -6px;
     margin-top: -6px;
+}
+
+.book-img-card {
+    border-radius: 4px;
 }
 
 </style>

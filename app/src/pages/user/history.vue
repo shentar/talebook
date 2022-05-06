@@ -1,24 +1,24 @@
 <template>
     <div>
-        <v-row align=start v-if="history.length == 0">
-            <v-col cols=12>
-                <p class="title"> 暂无阅读历史。请尽情<a to="/">畅游书籍的海洋</a>吧~ </p>
+        <v-row align=start v-if="history.length === 0">
+            <v-col cols=12 xs=6>
+                <p class="title"> 暂无阅读历史。请尽情<a href="/">畅游书籍的海洋</a>吧~ </p>
             </v-col>
         </v-row>
         <v-row v-else v-for="item in history" :key="item.name">
-            <v-col cols=12>
+            <v-col cols=12 xs=6>
                 <legend>{{ item.name }}</legend>
                 <v-divider></v-divider>
             </v-col>
-            <v-col cols=12 v-if="item.books.length==0">
+            <v-col cols=12 xs=6 v-if="item.books.length === 0">
                 <p class="pb-6">无记录</p>
             </v-col>
-            <v-col cols=12 xs=6 sm=4 md=2 lg=1 v-else v-for="book in item.books" :key="item.name + book.id">
-                <a :href="book.href" target="_blank">
-                    <v-card class="ma-1">
-                        <v-img :src="book.img" :title="book.title" :aspect-ratio="11/15"></v-img>
-                    </v-card>
-                </a>
+            <v-col cols=4 xs=4 sm=4 md=2 lg=1 v-else v-for="book in item.books" :key="item.name + book.id">
+                <v-card class="ma-1">
+                    <a :href="book.href" target="_blank">
+                        <v-img :src="book.img" :title="book.title" :aspect-ratio="11/15" class="his-img"></v-img>
+                    </a>
+                </v-card>
             </v-col>
         </v-row>
     </div>
@@ -81,4 +81,8 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+.his-img {
+    border-radius: 4px;
+}
+</style>
