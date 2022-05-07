@@ -51,14 +51,16 @@ def js(func):
             rsp["msg"] = rsp.get("msg", "")
         except Exception as e:
             import traceback
-
-            logging.error(traceback.format_exc())
             msg = (
-                    'Exception:<br><pre style="white-space:pre-wrap;word-break:keep-all">%s</pre>' % traceback.format_exc()
+                    'Exception:<br><pre style="white-space:pre-wrap;word-break:keep-all">%s</pre>'
+                    % traceback.format_exc()
             )
             rsp = {"err": "exception", "msg": msg}
             if isinstance(e, web.Finish):
                 rsp = ""
+            else:
+                logging.error(traceback.format_exc())
+
         origin = self.request.headers.get("origin", "*")
         self.set_header("Access-Control-Allow-Origin", origin)
         self.set_header("Access-Control-Allow-Credentials", "true")
@@ -376,6 +378,7 @@ class BaseHandler(web.RequestHandler):
         if not books:
             self.write({"err": "not_found", "msg": _(u"抱歉，这本书不存在")})
             self.set_status(200)
+            logging.info("the book with id[%s] is not found." % str(book_id))
             raise web.Finish()
         return books[0]
 
