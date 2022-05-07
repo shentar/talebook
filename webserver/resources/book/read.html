@@ -86,7 +86,7 @@
         $.ajax({
             url: progress_url,
             success: function (html) {
-                if (html == window.progress) {
+                if (html === window.progress) {
                     return;
                 }
                 $("#progress").html(html);

@@ -69,11 +69,11 @@ export default {
         user: {},
         show_pass: false,
         rules: {
-            pass: v => v == undefined || v.length == 0 || v.length >= 8 || 'Min 8 characters',
-            nick: v => v == undefined || v.length == 0 || v.length >= 2 || 'Min 2 characters',
+            pass: v => v === undefined || v.length === 0 || v.length >= 8 || 'Min 8 characters',
+            nick: v => v === undefined || v.length === 0 || v.length >= 2 || 'Min 2 characters',
             email: function (email) {
                 var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                return email == undefined || email.length == 0 || re.test(email) || "Invalid email format";
+                return email === undefined || email.length === 0 || re.test(email) || "Invalid email format";
             },
         },
     }),
@@ -94,7 +94,7 @@ export default {
     },
     methods: {
         valid: function (v) {
-            return v == this.user.password1 || "Password are not same."
+            return v === this.user.password1 || "Password are not same."
         },
         save: function () {
             if (!this.$refs.form.validate()) {
@@ -110,25 +110,24 @@ export default {
             this.$backend('/user/update', {
                 method: 'POST',
                 body: JSON.stringify(d),
-            })
-                .then(rsp => {
-                    if (rsp.err != 'ok') {
-                        this.failmsg = rsp.msg;
-                    } else {
-                        this.$store.commit("navbar", true);
-                        this.$router.push("/");
-                    }
-                });
+            }).then(rsp => {
+                if (rsp.err !== 'ok') {
+                    this.failmsg = rsp.msg;
+                } else {
+                    // this.$store.commit("navbar", true);
+                    // this.$router.push("/");
+                    this.$alert("success", "修改成功！")
+                }
+            });
         },
         send_active_email: function () {
-            this.$backend('/user/active/send')
-                .then(rsp => {
-                    if (rsp.err == 'ok') {
-                        this.$alert("success", "激活邮件已发出！");
-                    } else {
-                        this.$alert("danger", rsp.msg);
-                    }
-                });
+            this.$backend('/user/active/send').then(rsp => {
+                if (rsp.err === 'ok') {
+                    this.$alert("success", "激活邮件已发出！");
+                } else {
+                    this.$alert("danger", rsp.msg);
+                }
+            });
         },
         init(route, next) {
             this.$store.commit('navbar', true);

@@ -132,6 +132,9 @@ class SignUp(BaseHandler):
         user = self.session.query(Reader).filter(Reader.username == username).first()
         if user:
             return {"err": "params.username.exist", "msg": _(u"用户名已被使用")}
+        user = self.session.query(Reader).filter(Reader.email == email).first()
+        if user:
+            return {"err": "params.email.exist", "msg": _(u"邮箱地址已被使用")}
         user = Reader()
         user.username = username
         user.name = nickname
@@ -143,6 +146,8 @@ class SignUp(BaseHandler):
         user.active = False
         user.extra = {"kindle_email": ""}
         user.set_secure_password(password)
+        # 默认不允许上传。
+        user.permission = "U"
         try:
             user.save()
         except:
