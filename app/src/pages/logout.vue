@@ -14,6 +14,8 @@
                     <v-spacer></v-spacer>
                     <v-btn class="mb-4" rounded color="primary" href="/">返回首页</v-btn>
                     <v-spacer></v-spacer>
+                    <v-btn class="mb-4" rounded color="primary" href="/login">更换用户登录</v-btn>
+                    <v-spacer></v-spacer>
                 </v-card-actions>
             </v-card>
         </v-col>

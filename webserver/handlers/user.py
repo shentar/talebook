@@ -115,6 +115,9 @@ class SignUp(BaseHandler):
 
     @js
     def post(self):
+        if not CONF["ALLOW_REGISTER"]:
+            return {"err": "params.invalid", "msg": _(u"当前系统设置为不允许注册新用户，请联系管理员。")}
+
         email = self.get_argument("email", "").strip()
         nickname = self.get_argument("nickname", "").strip()
         username = self.get_argument("username", "").strip().lower()

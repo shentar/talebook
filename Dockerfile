@@ -35,7 +35,7 @@ RUN if [ "x${BUILD_COUNTRY}" = "xCN" ]; then \
     fi
 
 # install envsubst
-RUN apt-get update && apt-get install -y gettext
+RUN apt-get update && apt-get install -y gettext procps
 
 # intall nodejs for nuxtjs server side render
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
@@ -85,8 +85,6 @@ RUN rm -f /etc/nginx/sites-enabled/default /var/www/html -rf && \
     echo 'settings = {}' > /data/books/settings/auto.py && \
     chmod a+w /data/books/settings/auto.py && \
     calibredb add --library-path=/data/books/library/ -r docker/book/ && \
-    python3 server.py --syncdb  && \
-    python3 server.py --update-config  && \
     rm -f webserver/*.pyc && \
     mkdir -p /prebuilt/ && \
     mv /data/* /prebuilt/ && \

@@ -24,7 +24,5 @@ if [ ! -d "/data/books/ssl" ]; then
   cp -rf /prebuilt/books/ssl /data/books/
 fi
 
-/var/www/talebook/server.py --syncdb
-/var/www/talebook/server.py --update-config
 service nginx restart
 /usr/bin/supervisord --nodaemon -c /etc/supervisor/supervisord.conf

@@ -127,14 +127,12 @@ def make_app():
     logging.info("Init HTML    with [%s]" % CONF["html_path"])
     logging.info("Init Nuxtjs  with [%s]" % CONF["nuxt_env_path"])
 
-    if options.update_config:
-        logging.info("updating configs ...")
-        # 触发一次空白配置更新
-        from webserver.handlers.admin import SettingsSaverLogic
-        logic = SettingsSaverLogic()
-        logic.update_nuxtjs_env()
-        logging.info("done")
-        sys.exit(0)
+    logging.info("updating configs ...")
+    # 触发一次空白配置更新
+    from webserver.handlers.admin import SettingsSaverLogic
+    logic = SettingsSaverLogic()
+    logic.update_nuxtjs_env()
+    logging.info("updating configs done ...")
 
     # build sql session factory
     engine = create_engine(auth_db_path, **CONF["db_engine_args"])
@@ -142,10 +140,9 @@ def make_app():
     models.bind_session(ScopedSession)
     init_social(models.Base, ScopedSession, CONF)
 
-    if options.syncdb:
-        models.user_syncdb(engine)
-        logging.info("Create tables into DB")
-        sys.exit(0)
+    # 创表或者新增表。
+    models.user_syncdb(engine)
+    logging.info("Create tables into DB")
 
     init_calibre()
 
