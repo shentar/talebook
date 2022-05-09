@@ -133,12 +133,13 @@ class Scanner:
             sha256.update(hex(os.path.getsize(fpath if fpath else "")).encode("UTF-8"))
             hash_str = "sha256:" + sha256.hexdigest()
 
-            if self.session.query(ScanFile).filter(ScanFile.hash == hash_str).count() > 0:
+            if self.session.query(ScanFile).filter(ScanFile.hash == hash_str).count() > 0 or hash_str in inserted_hash:
                 # 如果已经有相同的哈希值，则删掉本任务
                 row.status = ScanFile.DROP
             else:
                 # 或者，更新为真实的哈希值
                 row.hash = hash_str
+            inserted_hash.add(hash_str)
             if not self.save_or_rollback(row):
                 continue
         return True
