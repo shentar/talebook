@@ -46,12 +46,23 @@
                 <v-text-field solo v-model="user.nickname" label="昵称" type="text" autocomplete="new-nickname"
                               :rules="[rules.nick]"></v-text-field>
             </v-col>
-            
+
             <v-col cols=3>
                 <v-subheader class="pa-0 float-right">权限</v-subheader>
             </v-col>
             <v-col cols=9>
-                <p class="pt-3 mb-0">{{ user.pems }}</p>
+                <p v-if="gen_perms(user.pems, true) !== ''" class="pt-3 mb-0">
+                    <v-icon style="color: green;">mdi-check-circle-outline</v-icon>
+                    {{ gen_perms(user.pems, true) }}
+                </p>
+                <p v-if="gen_perms(user.pems, false) !== ''" class="pt-3 mb-0">
+                    <v-icon style="color: red;">mdi-close-circle-outline</v-icon>
+                    {{ gen_perms(user.pems, false) }}
+                </p>
+                <br/>
+                <p style="font-style: italic;font-size: smaller;color: gray;">
+                    * 1.在线阅读权限仅限非PDF类书籍，PDF书籍需要下载权限；2.编辑和删除权限仅限自己上传的书籍。
+                </p>
             </v-col>
 
             <v-col cols=3>
@@ -83,6 +94,14 @@ export default {
                 return email === undefined || email.length === 0 || re.test(email) || "Invalid email format";
             },
         },
+        permissions: {
+            "r": "在线阅读*",
+            "s": "下载*",
+            "p": "推送",
+            "e": "编辑*",
+            "d": "删除*",
+            "u": "上传"
+        },
     }),
     async asyncData({params, app, res}) {
         if (res !== undefined) {
@@ -98,6 +117,32 @@ export default {
     },
     beforeRouteUpdate(to, from, next) {
         this.init(to, next);
+    },
+    computed: {
+        gen_perms() {
+            return function (perms, allow) {
+                if (perms === undefined) {
+                    perms = "usedpr"
+                }
+                let pstr = ""
+                for (let i of Object.keys(this.permissions)) {
+                    if (perms.indexOf(i.toUpperCase()) > -1) {
+                        if (!allow) {
+                            pstr += (this.permissions[i] + " | ")
+                        }
+                    } else {
+                        if (allow) {
+                            pstr += (this.permissions[i] + " | ")
+                        }
+                    }
+                }
+
+                if (pstr.endsWith(" | ")) {
+                    pstr = pstr.substring(0, pstr.length - 3)
+                }
+                return pstr
+            }
+        }
     },
     methods: {
         valid: function (v) {

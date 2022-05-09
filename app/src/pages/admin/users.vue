@@ -7,17 +7,16 @@
             :options.sync="options"
             :server-items-length="total"
             :loading="loading"
-            class="elevation-1"
-        >
+            class="elevation-1">
             <template v-slot:item.login_ip="{ item }">
                 {{ item.extra.login_ip }}
             </template>
             <template v-slot:item.detail="{ item }">
-                <span v-if="item.extra.visit_history"> 访问{{ item.extra.visit_history.length }}本 </span>
-                <span v-if="item.extra.read_history"> 阅读{{ item.extra.read_history.length }}本 </span>
-                <span v-if="item.extra.push_history"> 推送{{ item.extra.push_history.length }}本 </span>
-                <span v-if="item.extra.download_history"> 下载{{ item.extra.download_history.length }}本 </span>
-                <span v-if="item.extra.upload_history"> 上传{{ item.extra.upload_history.length }}本 </span>
+                <span v-if="item.extra.visit_history">访问{{ item.extra.visit_history.length }}本 </span>
+                <span v-if="item.extra.read_history">阅读{{ item.extra.read_history.length }}本 </span>
+                <span v-if="item.extra.push_history">推送{{ item.extra.push_history.length }}本 </span>
+                <span v-if="item.extra.download_history">下载{{ item.extra.download_history.length }}本 </span>
+                <span v-if="item.extra.upload_history">上传{{ item.extra.upload_history.length }}本 </span>
             </template>
             <template v-slot:item.actions="{ item }">
                 <v-menu offset-y right>
@@ -30,41 +29,25 @@
                         <v-subheader>修改用户权限</v-subheader>
                         <template v-for="perm in permissions">
                             <v-list-item :key="'disable-' + perm.name" v-if="item[perm.name]">
-                                <v-list-item-title
-                                >
+                                <v-list-item-title>
                                     <v-icon color="success">mdi-account-check</v-icon>
                                     已允许{{ perm.text }}
                                 </v-list-item-title>
                                 <v-list-item-action>
-                                    <v-btn
-                                        text
-                                        small
-                                        color="error"
-                                        @click="
-                                            setuser(item.id, { permission: perm.code.toUpperCase() });
-                                            item[perm.name] = !item[perm.name];
-                                        "
-                                    >
+                                    <v-btn text small color="error"
+                                           @click="setuser(item.id, { permission: perm.code.toUpperCase() }); item[perm.name] = !item[perm.name];">
                                         关闭
                                     </v-btn>
                                 </v-list-item-action>
                             </v-list-item>
                             <v-list-item :key="'enable-' + perm.name" v-else>
-                                <v-list-item-title
-                                >
+                                <v-list-item-title>
                                     <v-icon color="danger">mdi-account-remove</v-icon>
                                     已禁止{{ perm.text }}
                                 </v-list-item-title>
                                 <v-list-item-action>
-                                    <v-btn
-                                        text
-                                        small
-                                        color="primary"
-                                        @click="
-                                            setuser(item.id, { permission: perm.code.toLowerCase() });
-                                            item[perm.name] = !item[perm.name];
-                                        "
-                                    >
+                                    <v-btn text small color="primary"
+                                           @click="setuser(item.id, { permission: perm.code.toLowerCase() }); item[perm.name] = !item[perm.name];">
                                         开启
                                     </v-btn>
                                 </v-list-item-action>
@@ -73,39 +56,19 @@
 
                         <v-divider></v-divider>
                         <v-subheader>账号管理</v-subheader>
-                        <v-list-item
-                            v-if="!item.is_active"
-                            @click="
-                                setuser(item.id, { active: true });
-                                item.is_active = true;
-                            "
-                        >
+                        <v-list-item v-if="!item.is_active"
+                                     @click="setuser(item.id, { active: true }); item.is_active = true;">
                             <v-list-item-title> 免邮箱认证，直接激活账户</v-list-item-title>
                         </v-list-item>
-                        <v-list-item
-                            v-if="item.is_admin"
-                            @click="
-                                setuser(item.id, { admin: false });
-                                item.is_admin = !item.is_admin;
-                            "
-                        >
+                        <v-list-item v-if="item.is_admin"
+                                     @click="setuser(item.id, { admin: false });item.is_admin = !item.is_admin;">
                             <v-list-item-title> 取消管理员</v-list-item-title>
                         </v-list-item>
-                        <v-list-item
-                            v-else
-                            @click="
-                                setuser(item.id, { admin: true });
-                                item.is_admin = item.is_admin = !item.is_admin;
-                            "
-                        >
+                        <v-list-item v-else
+                                     @click=" setuser(item.id, { admin: true });item.is_admin = item.is_admin = !item.is_admin;">
                             <v-list-item-title> 设置为管理员</v-list-item-title>
                         </v-list-item>
-                        <v-list-item
-                            @click="
-                                setuser(item.id, { delete: item.username });
-                                getDataFromApi()
-                            "
-                        >
+                        <v-list-item @click="setuser(item.id, { delete: item.username }); getDataFromApi()">
                             <v-list-item-title> 立即删除该用户</v-list-item-title>
                         </v-list-item>
                     </v-list>
@@ -167,21 +130,21 @@ export default {
             const {sortBy, sortDesc, page, itemsPerPage} = this.options;
 
             var data = new URLSearchParams();
-            if (page != undefined) {
+            if (page !== undefined) {
                 data.append("page", page);
             }
-            if (sortBy != undefined) {
+            if (sortBy !== undefined) {
                 data.append("sort", sortBy);
             }
-            if (sortDesc != undefined) {
+            if (sortDesc !== undefined) {
                 data.append("desc", sortDesc);
             }
-            if (itemsPerPage != undefined) {
+            if (itemsPerPage !== undefined) {
                 data.append("num", itemsPerPage);
             }
             this.$backend("/admin/users?" + data.toString())
                 .then((rsp) => {
-                    if (rsp.err != "ok") {
+                    if (rsp.err !== "ok") {
                         this.items = [];
                         this.total = 0;
                         alert(rsp.msg);
@@ -200,7 +163,7 @@ export default {
                 body: JSON.stringify(action),
                 method: "POST",
             }).then((rsp) => {
-                if (rsp.err != "ok") {
+                if (rsp.err !== "ok") {
                     this.$alert("error", rsp.msg);
                 }
             });
