@@ -15,8 +15,9 @@
             </v-col>
             <v-col cols=4 xs=4 sm=4 md=2 lg=1 v-else v-for="book in item.books" :key="item.name + book.id">
                 <v-card class="ma-1">
-                    <a :href="book.href" target="_blank">
-                        <v-img :src="book.img" :title="book.title" :aspect-ratio="11/15" class="his-img"></v-img>
+                    <a :href="'/book/' + book.id" target="_blank">
+                        <v-img :src="get_book_img(book)" :title="book.title" :aspect-ratio="11/15"
+                               class="his-img"></v-img>
                     </a>
                 </v-card>
             </v-col>
@@ -40,6 +41,19 @@ export default {
                 {name: '浏览记录', books: this.get_history(this.user.extra.visit_history)},
             ]
         },
+        get_book_img() {
+            return function (book) {
+                let uri = "/get/cover/" + book.id + ".jpg"
+                if (book.lm !== undefined) {
+                    uri += "?t=" + book.lm
+                }
+                if (this.user.cdn !== undefined) {
+                    return this.user.cdn + uri
+                } else {
+                    return uri
+                }
+            }
+        }
     },
     data: () => ({
         user: {},
@@ -76,7 +90,7 @@ export default {
                 b.href = '/book/' + b.id;
                 return b;
             });
-        }
+        },
     },
 }
 </script>

@@ -363,6 +363,7 @@ class UserInfo(BaseHandler):
         if user.extra:
             d["kindle_email"] = user.extra.get("kindle_email", "")
             if detail:
+                d["pems"] = user.permission
                 for k, v in user.extra.items():
                     if not k.endswith("_history"):
                         continue
@@ -373,8 +374,7 @@ class UserInfo(BaseHandler):
                     for b in books:
                         hb = {
                             "id": b["id"],
-                            "img": self.cdn_url + "/get/cover/%(id)s.jpg?t=%(last_modified)s" % b,
-                            "href": "/book/%(id)s" % b,
+                            "lm": b["last_modified"].strftime("%s"),
                             "title": b["title"]
                         }
                         hbs[hb["id"]] = hb

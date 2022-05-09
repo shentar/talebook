@@ -46,6 +46,13 @@
                 <v-text-field solo v-model="user.nickname" label="昵称" type="text" autocomplete="new-nickname"
                               :rules="[rules.nick]"></v-text-field>
             </v-col>
+            
+            <v-col cols=3>
+                <v-subheader class="pa-0 float-right">权限</v-subheader>
+            </v-col>
+            <v-col cols=9>
+                <p class="pt-3 mb-0">{{ user.pems }}</p>
+            </v-col>
 
             <v-col cols=3>
                 <v-subheader class="pa-0 float-right">Kindle地址</v-subheader>
@@ -114,8 +121,6 @@ export default {
                 if (rsp.err !== 'ok') {
                     this.failmsg = rsp.msg;
                 } else {
-                    // this.$store.commit("navbar", true);
-                    // this.$router.push("/");
                     this.$alert("success", "修改成功！")
                 }
             });

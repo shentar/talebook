@@ -194,10 +194,10 @@ class Reader(Base, SQLAlchemyMixin):
         self.permission = "".join(sorted(v))
 
     def has_permission(self, operation, default=True):
-        if operation.lower() in self.permission:
-            return True
         if operation.upper() in self.permission:
             return False
+        if operation.lower() in self.permission:
+            return True
         return default
 
     def can_login(self):
