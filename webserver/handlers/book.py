@@ -105,11 +105,12 @@ class BookDetail(BaseHandler):
     def get(self, id):
         book = self.get_book(id)
         self.user_history("visit_history", id)
-        self.count_increase(id, count_visit=1)
+        douban_id = self.count_increase(id, count_visit=1)
         return {
             "err": "ok",
             "kindle_sender": CONF["smtp_username"],
             "book": utils.BookFormatter(self, book).format(with_files=True, with_perms=True),
+            "dbid": douban_id
         }
 
 
@@ -259,7 +260,26 @@ class BookRefer(BaseHandler):
             mi.smart_update(refer_mi, replace_metadata=True)
 
         self.db.set_metadata(book_id, mi)
+
+        if only_cover != "yes":
+            self.set_website(book_id, provider_key, provider_value)
+
         return {"err": "ok"}
+
+    def set_website(self, book_id, provider_key, provider_value):
+        if provider_key != douban.KEY:
+            return
+
+        douban_id = provider_value
+        try:
+            item = self.session.query(Item).filter(Item.book_id == book_id).one()
+        except:
+            item = Item()
+            item.book_id = book_id
+
+        if item.website != douban_id:
+            item.website = douban_id
+            item.save()
 
 
 class BookEdit(BaseHandler):
@@ -572,7 +592,7 @@ class BookRead(BaseHandler):
             fpath = new_path
 
         # extract to dir
-        logging.error("extract book: %s" % fpath)
+        logging.warning("extract book: %s" % fpath)
         os.chdir(fdir)
         with open(progress_file, "a") as log:
             log.write(u"Dir: %s\n" % fdir)

@@ -471,6 +471,8 @@ class BaseHandler(web.RequestHandler):
                     s.value = "1"
                 s.save()
 
+        return item.website
+
     def search_for_books(self, query):
         self.search_restriction = ""
         return self.db.search_getting_ids(

@@ -189,13 +189,13 @@
                                 <span color="grey--text">{{ book.author }}著，{{ pub_year }}年版</span>
                                 <span
                                     v-if='book.files.length>0 && book.files[0].format==="PDF" && book.files[0].size >= 1048576'
-                                    color="grey--text" style="font-weight: bold">&nbsp;&nbsp;&nbsp;[文件格式: PDF - {{
+                                    color="grey--text" style="font-weight: bold">&nbsp;[文件格式: PDF - {{
                                         parseInt(book.files[0].size / 1048576)
                                     }}MB]
                                 </span>
                                 <span
                                     v-else-if='book.files.length>0 && book.files[0].format==="PDF" && book.files[0].size < 1048576'
-                                    color="grey--text" style="font-weight: bold">&nbsp;&nbsp;&nbsp;[文件格式: PDF - {{
+                                    color="grey--text" style="font-weight: bold">&nbsp;[文件格式: PDF - {{
                                         parseInt(book.files[0].size / 1024)
                                     }}KB]
                                 </span>
@@ -248,6 +248,16 @@
                                         {{ tag }}
                                     </v-chip>
                                 </template>
+                                <v-chip v-if="db_link !== undefined"
+                                        rounded
+                                        small
+                                        dark
+                                        color="green"
+                                        :href="db_link"
+                                        target="__blank">
+                                    <v-icon>explore</v-icon>
+                                    豆瓣链接
+                                </v-chip>
                             </div>
                         </v-card-text>
                         <v-card-text v-if="this.err === 'ok'">
@@ -341,11 +351,19 @@ export default {
                 return value !== "" && value !== undefined && value !== null && self.indexOf(value) === index;
             });
         },
+        db_link: function () {
+            if (this.dbid !== undefined && this.dbid !== "") {
+                return "https://book.douban.com/subject/" + this.dbid
+            } else {
+                return undefined
+            }
+        }
     },
     data: () => ({
         err: "",
         msg: "",
         book: {id: 0, title: "", files: [], tags: [], pubdate: ""},
+        dbid: "",
         debug: false,
         mail_to: "",
         kindle_sender: "",
