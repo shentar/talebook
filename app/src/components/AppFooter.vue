@@ -4,9 +4,9 @@
             <v-divider class='mt-10 mb-3'></v-divider>
             <p class='mb-0 text-center footer-text' v-html="footer_text"></p>
             <p>
-                <v-btn small text target="_blank" href="https://git.codefine.site:3000/shentar/talebook">Github</v-btn>
+                <v-btn small text target="_blank" href="https://git.codefine.site:3000/shentar/talebook">源码工程</v-btn>
                 |
-                <v-btn small text target="_blank" href="https://hub.docker.com/r/shentar/talebook">Docker</v-btn>
+                <v-btn small text target="_blank" href="https://hub.docker.com/r/shentar/talebook">Docker镜像</v-btn>
             </p>
         </v-col>
     </v-row>
