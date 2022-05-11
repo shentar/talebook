@@ -76,6 +76,7 @@ class MetaBooks(ListHandler):
         if meta in ["rating"]:
             name = int(name)
         books = self.get_item_books(category, name)
+        count = len(books)
         books.sort(key=cmp_to_key(utils.compare_books_by_rating_or_id), reverse=True)
         start = self.get_argument_start()
         try:
@@ -87,7 +88,7 @@ class MetaBooks(ListHandler):
         return {
             "err": "ok",
             "title": title,
-            "total": len(books),
+            "total": count,
             "books": [self.fmt(b) for b in books],
         }
 
