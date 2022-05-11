@@ -139,6 +139,20 @@ def compare_books_by_rating_or_id(x, y):
         return -1
 
 
+def compare_books_by_visit_download(x, y):
+    x_ = (x.get("count_visit", 0) * 2 or 0) + (x.get("count_download", 0) or 0)
+    y_ = (y.get("count_visit", 0) * 2 or 0) + (y.get("count_download", 0) or 0)
+
+    if x_ > y_:
+        return 1
+    elif x_ < y_:
+        return -1
+    elif x["id"] > y["id"]:
+        return 1
+    else:
+        return -1
+
+
 def check_email(addr):
     if not addr:
         return False

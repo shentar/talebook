@@ -123,7 +123,6 @@ export default {
             }
             r.start = (this.page - 1) * this.page_size;
             r.size = this.page_size;
-            //this.$alert('success', r);
             this.$router.push({query: r});
         }
     },

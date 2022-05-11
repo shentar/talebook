@@ -594,7 +594,7 @@ class ListHandler(BaseHandler):
         return None
 
     @js
-    def render_book_list(self, all_books, ids=None, title=None, sort_by_id=False):
+    def render_book_list(self, ids=None, title=None, sort_by_id=False):
         start = self.get_argument_start()
         try:
             size = int(self.get_argument("size"))
@@ -602,16 +602,23 @@ class ListHandler(BaseHandler):
             size = 60
         delta = min(max(size, 60), 100)
 
-        if ids:
-            ids = list(ids)
-            count = len(ids)
-            books = self.get_books(ids=ids[start: start + delta])
-            if sort_by_id:
-                # 归一化，按照id从大到小排列。
-                self.do_sort(books, "id", False)
+        ids = list(ids)
+        count = len(ids)
+        books = self.get_books(ids=ids[start: start + delta])
+        if sort_by_id:
+            # 归一化，按照id从大到小排列。
+            self.do_sort(books, "id", False)
         else:
-            count = len(all_books)
-            books = all_books[start: start + delta]
+            # 按照输入的id列表进行排序。
+            hbs = {}
+            hb_list = []
+            for b in books:
+                hbs[b["id"]] = b
+            for idx in ids:
+                if idx in hbs:
+                    hb_list.append(hbs[idx])
+            books = hb_list
+
         return {
             "err": "ok",
             "title": title,

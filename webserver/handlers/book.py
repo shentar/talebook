@@ -348,7 +348,9 @@ class BookDelete(BaseHandler):
             return {"err": "permission", "msg": _(u"无权删除书籍")}
 
         self.db.delete_book(bid)
-        self.add_msg("success", _(u"删除书籍《%s》") % book["title"])
+        self.session.query(Item).filter(Item.id == bid.id).delete()
+        self.session.commit()
+        # self.add_msg("success", _(u"删除书籍《%s》") % book["title"])
         return {"err": "ok"}
 
 
@@ -408,7 +410,7 @@ class RecentBook(ListHandler):
     def get(self):
         title = _(u"所有书籍")
         ids = self.books_by_id()
-        return self.render_book_list([], ids=ids, title=title, sort_by_id=True)
+        return self.render_book_list(ids=ids, title=title, sort_by_id=True)
 
 
 class SearchBook(ListHandler):
@@ -419,27 +421,37 @@ class SearchBook(ListHandler):
 
         title = _(u"搜索：%(name)s") % {"name": name}
         ids = self.cache.search(name)
-        return self.render_book_list([], ids=ids, title=title)
+        return self.render_book_list(ids=ids, title=title)
 
 
 class HotBook(ListHandler):
+    @js
     def get(self):
-        title = _(u"热度榜单")
-        db_items = self.session.query(Item).filter(Item.count_visit > 1).order_by(Item.count_download.desc())
-        count = db_items.count()
+        db_items = self.session.query(Item).filter(Item.count_visit > 1).order_by(
+            (Item.count_download + Item.count_visit * 2).desc())
         start = self.get_argument_start()
         delta = 60
-        page_max = int(count / delta)
-        page_now = int(start / delta)
-        pages = []
-        for p in range(page_now - 3, page_now + 3):
-            if 0 <= p <= page_max:
-                pages.append(p)
         items = db_items.limit(delta).offset(start).all()
         ids = [item.book_id for item in items]
         books = self.get_books(ids=ids)
-        self.do_sort(books, "count_download", False)
-        return self.render_book_list(books, title=title)
+        from functools import cmp_to_key
+        books.sort(key=cmp_to_key(utils.compare_books_by_visit_download), reverse=True)
+        if len(books) != len(items):
+            logging.info("{}".format([b["id"] for b in books]))
+            logging.info("{}".format([b.book_id for b in items]))
+
+        # 热度榜单最多显示120本书籍，最多两页。
+        if len(items) < delta:
+            total = start + len(items)
+        else:
+            total = 120
+
+        return {
+            "err": "ok",
+            "title": _(u"热度榜单"),
+            "total": total,
+            "books": [self.fmt(b) for b in books],
+        }
 
 
 class BookUpload(BaseHandler):

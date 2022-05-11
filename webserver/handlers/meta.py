@@ -62,6 +62,7 @@ class MetaList(ListHandler):
 
 
 class MetaBooks(ListHandler):
+    @js
     def get(self, meta, name):
         titles = {
             "tag": _(u'含有"%(name)s"标签的书籍'),
@@ -76,7 +77,19 @@ class MetaBooks(ListHandler):
             name = int(name)
         books = self.get_item_books(category, name)
         books.sort(key=cmp_to_key(utils.compare_books_by_rating_or_id), reverse=True)
-        return self.render_book_list(books, title=title)
+        start = self.get_argument_start()
+        try:
+            size = int(self.get_argument("size"))
+        except:
+            size = 60
+        delta = min(max(size, 60), 100)
+        books = books[start:start + delta]
+        return {
+            "err": "ok",
+            "title": title,
+            "total": len(books),
+            "books": [self.fmt(b) for b in books],
+        }
 
 
 def routes():
