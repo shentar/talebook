@@ -186,12 +186,17 @@ class SignIn(BaseHandler):
     def post(self):
         username = self.get_argument("username", "").strip().lower()
         password = self.get_argument("password", "").strip()
-        if not username or not password:
-            return {"err": "params.invalid", "msg": _(u"用户名或密码错误")}
+        if not username:
+            return {"err": "params.invalid", "msg": _(u"用户名为空")}
+        if not password:
+            return {"err": "params.invalid", "msg": _(u"不允许空密码")}
+
         user = self.session.query(Reader).filter(Reader.username == username).first()
+        if not user:
+            return {"err": "params.invalid", "msg": _(u"用户%s未注册" % username)}
 
         if not user.salt:
-            return {"err": "params.invalid", "msg": _(u"用户名或密码错误")}
+            return {"err": "params.invalid", "msg": _(u"%s用户不是本地注册用户，请使用正确的登录平台登录。" % username)}
 
         if not user:
             return {"err": "params.no_user", "msg": _(u"无此用户")}
