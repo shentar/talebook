@@ -267,7 +267,9 @@
                     </v-col>
                 </v-row>
                 <v-card-text class="align-right book-footer" v-if="this.err === 'ok'">
-                    <span class="grey--text"> {{ book.collector }} @ {{ book.timestamp }} </span>
+                    <span class="grey--text"> {{ book.collector }} @ {{
+                            book.timestamp
+                        }} | [热度指数 {{ get_hot_score }}]</span>
                 </v-card-text>
             </v-card>
         </v-col>
@@ -357,12 +359,15 @@ export default {
             } else {
                 return undefined
             }
+        },
+        get_hot_score: function () {
+            return this.book.count_download + this.book.count_visit * 2
         }
     },
     data: () => ({
         err: "",
         msg: "",
-        book: {id: 0, title: "", files: [], tags: [], pubdate: ""},
+        book: {id: 0, title: "", files: [], tags: [], pubdate: "", count_download: 0, count_visit: 0},
         dbid: "",
         debug: false,
         mail_to: "",
