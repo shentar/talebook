@@ -37,7 +37,7 @@ class SimpleBookFormatter:
             "id": b["id"],
             "title": b["title"],
             "rating": b["rating"],
-            "timestamp": self.val("last_modified"),
+            "timestamp": self.val("timestamp"),
             "pubdate": self.val("pubdate"),
             "author": ", ".join(b["authors"]),
             "authors": b["authors"],

@@ -146,7 +146,6 @@ class DoubanBookApi(object):
         logging.debug("=================\nsource metadata:\n%s" % book)
 
         from calibre.ebooks.metadata.book.base import Metadata
-        from calibre.utils.date import utcnow
 
         mi = Metadata(book["title"])
         mi.authors = authors
