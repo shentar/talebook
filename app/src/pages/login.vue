@@ -73,7 +73,7 @@ export default {
             type: "error",
             msg: "",
         },
-        book_id: -1,
+        from: undefined,
     }),
     asyncData({store}) {
         store.commit("navbar", false);
@@ -86,7 +86,7 @@ export default {
         this.$backend("/user/info").then((rsp) => {
             this.$store.commit("login", rsp);
         });
-        this.book_id = this.$route.query.id
+        this.from = this.$route.query.from
     },
     computed: {
         socials: function () {
@@ -107,8 +107,8 @@ export default {
                     this.alert.msg = rsp.msg;
                 } else {
                     this.$store.commit("navbar", true);
-                    if (this.book_id > 0) {
-                        this.$router.push(`/book/${this.book_id}`)
+                    if (this.from !== undefined && this.from !== "") {
+                        this.$router.push(`${this.from}`)
                     } else {
                         this.$router.push("/");
                     }

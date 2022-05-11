@@ -199,7 +199,7 @@
                     </v-menu>
                 </template>
 
-                <v-btn v-else class="px-xs-1" to="/login" color="indigo accent-4">
+                <v-btn v-else class="px-xs-1" :to="get_login_from" color="indigo accent-4">
                     <v-icon class="d-none d-sm-flex">account_circle</v-icon>
                     请登录
                 </v-btn>
@@ -299,6 +299,9 @@ export default {
                 .concat(this.sys.friends.length > 0 ? friend_links : [])
                 .concat(sys_links);
         },
+        get_login_from: function () {
+            return "/login?from=" + this.$route.path
+        }
     },
     mounted() {
         this.visit_admin_pages = this.$route.path.indexOf("/admin/") === 0;
