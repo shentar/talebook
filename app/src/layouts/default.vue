@@ -19,7 +19,7 @@
                     </v-card-text>
                     <v-card-actions v-if="$store.state.alert.type!=='success' || $store.state.alert.to">
                         <v-spacer></v-spacer>
-                        <v-btn v-if='$store.state.alert.to' color="primary"
+                        <v-btn v-if='$store.state.alert.to !== undefined' color="primary"
                                @click="$router.push($store.state.alert.to);$store.commit('close_alert')">好的
                         </v-btn>
                         <v-btn v-else color="primary" @click="$store.commit('close_alert')">关闭</v-btn>

@@ -167,6 +167,12 @@
                                 </v-list-item-action>
                                 <v-list-item-title> 用户中心</v-list-item-title>
                             </v-list-item>
+                            <v-list-item to="/user/fav">
+                                <v-list-item-action>
+                                    <v-icon>mdi-star-box</v-icon>
+                                </v-list-item-action>
+                                <v-list-item-title> 我的收藏</v-list-item-title>
+                            </v-list-item>
                             <v-list-item to="/user/history">
                                 <v-list-item-action>
                                     <v-icon>history</v-icon>

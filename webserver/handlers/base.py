@@ -272,6 +272,23 @@ class BaseHandler(web.RequestHandler):
         user.extra.update(extra)
         user.save()
 
+    def del_user_history(self, action, book):
+        book_id = int(book)
+        if not self.user_id():
+            return
+        extra = self.current_user.extra
+        history = extra.get(action, [])
+        if len(history) > 0:
+            for i in range(0, len(history)):
+                if history[i] == book_id:
+                    history.pop(i)
+                    break
+
+        extra[action] = history
+        user = self.current_user
+        user.extra.update(extra)
+        user.save()
+
     def last_modified(self, updated):
         """
         Generates a locale independent, english timestamp from a datetime

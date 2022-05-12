@@ -106,11 +106,70 @@ class BookDetail(BaseHandler):
         book = self.get_book(id)
         self.user_history("visit_history", id)
         douban_id = self.count_increase(id, count_visit=1)
+
+        # 检查用户是否收藏了本书。
+        isFav = False
+        if self.current_user and self.current_user.extra:
+            favs = self.current_user.extra.get("fav_history", [])
+            if len(favs) > 0:
+                for i in range(0, len(favs)):
+                    if favs[i] == int(id):
+                        isFav = True
+                        break
+        book = utils.BookFormatter(self, book).format(with_files=True, with_perms=True)
+        book.update({"fav": isFav})
+
         return {
             "err": "ok",
             "kindle_sender": CONF["smtp_username"],
-            "book": utils.BookFormatter(self, book).format(with_files=True, with_perms=True),
+            "book": book,
             "dbid": douban_id
+        }
+
+
+class BookFavor(BaseHandler):
+    @js
+    def post(self, id):
+        if not self.current_user:
+            return {
+                "err": "error",
+                "msg": _(u"请登录后操作"),
+                "to": "/login?from=/book/%d" % int(id)
+            }
+        if not self.current_user.is_active():
+            return {
+                "err": "error",
+                "msg": _(u"请先激活账号后操作"),
+            }
+
+        # check_book_exist
+        book = self.get_book(id)
+        self.user_history("fav_history", id)
+        return {
+            "err": "ok",
+            "msg": _(u"收藏成功"),
+        }
+
+    @js
+    def delete(self, id):
+        if not self.current_user:
+            return {
+                "err": "error",
+                "msg": _(u"请登录后操作"),
+                "to": "/login?from=/book/%d" % int(id)
+            }
+        if not self.current_user.is_active():
+            return {
+                "err": "error",
+                "msg": _(u"请先激活账号后操作"),
+            }
+
+        # check_book_exist
+        book = self.get_book(id)
+        self.del_user_history("fav_history", id)
+        return {
+            "err": "ok",
+            "msg": _(u"取消收藏成功"),
         }
 
 
@@ -539,8 +598,6 @@ class BookRead(BaseHandler):
 
         book = self.get_book(id)
         book_id = book["id"]
-        self.user_history("read_history", book_id)
-        self.count_increase(book_id, count_visit=1)
 
         # check format
         for fmt in ["epub", "mobi", "azw", "azw3", "txt"]:
@@ -551,6 +608,8 @@ class BookRead(BaseHandler):
             epub_dir = os.path.dirname(fpath).replace(CONF["with_library"], "/get/extract/")
             epub_dir = urllib.parse.quote(epub_dir)
             self.extract_book(book, fpath, fmt)
+            self.user_history("read_history", book_id)
+            self.count_increase(book_id, count_visit=1)
             return self.html_page("book/read.html", vars())
 
         if "fmt_pdf" in book:
@@ -564,6 +623,8 @@ class BookRead(BaseHandler):
             # 非管理员，每天限制下载的书本数量。在线阅读PDF，相当于下载PDF。
             self.check_and_increase_download_count()
             self.count_increase(book_id, count_download=1)
+            self.user_history("read_history", book_id)
+            self.count_increase(book_id, count_visit=1)
 
             path = book["fmt_pdf"]
             self.set_header("Content-Type", "application/pdf")
@@ -752,6 +813,7 @@ def routes():
         (r"/api/book/([0-9]+)/edit", BookEdit),
         (r"/api/book/([0-9]+)\.(.+)", BookDownload),
         (r"/api/book/([0-9]+)/push", BookPush),
+        (r"/api/book/([0-9]+)/fav", BookFavor),
         (r"/api/book/([0-9]+)/refer", BookRefer),
         (r"/read/([0-9]+)", BookRead),
     ]

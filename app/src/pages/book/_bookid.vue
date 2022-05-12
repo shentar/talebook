@@ -121,17 +121,21 @@
             <v-card v-if="!dialog_refer">
                 <v-toolbar flat dense color="white" v-if="this.err === 'ok'">
                     <!-- download -->
-                    <v-btn icon small fab @click="dialog_download = true">
+                    <v-btn icon small fab @click="dialog_download = true" title="下载书籍">
                         <v-icon>get_app</v-icon>
                     </v-btn>
-                    <v-btn class="d-none" icon small fab>
-                        <v-icon>thumb_up</v-icon>
+
+                    <v-btn v-if="book.fav === true" icon small fab width="70px" title="点击取消收藏" @click="fav_book">
+                        <v-icon style="color: #BA476B">mdi-heart-plus</v-icon>
+                        <span style="color: #BA476B"> &nbsp;取消</span>
                     </v-btn>
-                    <v-btn class="d-none" icon small fab>
-                        <v-icon>share</v-icon>
+                    <v-btn v-else icon small fab width="70px" @click="fav_book">
+                        <v-icon title="点击收藏">mdi-heart-plus-outline</v-icon>
+                        <span> &nbsp;收藏</span>
                     </v-btn>
 
                     <v-spacer></v-spacer>
+
                     <v-btn :small="tiny" dark color="primary" class="mx-2 d-flex d-sm-flex"
                            @click="dialog_kindle = !dialog_kindle">
                         <v-icon left v-if="!tiny">email</v-icon>
@@ -367,7 +371,7 @@ export default {
     data: () => ({
         err: "",
         msg: "",
-        book: {id: 0, title: "", files: [], tags: [], pubdate: "", count_download: 0, count_visit: 0},
+        book: {id: 0, title: "", files: [], tags: [], pubdate: "", count_download: 0, count_visit: 0, fav: false},
         dbid: "",
         debug: false,
         mail_to: "",
@@ -489,13 +493,17 @@ export default {
             var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(email) || "Email格式错误";
         },
-        book_exist: function () {
-            if (this.err !== "ok") {
-                this.$alert("error", this.msg, "/")
-                return false
-            }
-
-            return true
+        fav_book() {
+            this.$backend("/book/" + this.book.id + "/fav", {
+                method: this.book.fav ? "DELETE" : "POST",
+            }).then((rsp) => {
+                if (rsp.err === "ok") {
+                    this.book.fav = !this.book.fav
+                    this.$alert("success", rsp.msg);
+                } else {
+                    this.$alert("error", rsp.msg, rsp.to);
+                }
+            });
         },
     },
 };
