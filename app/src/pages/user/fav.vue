@@ -12,9 +12,9 @@
             </v-col>
             <v-col cols=4 xs=4 sm=4 md=2 lg=1 v-for="(book,idx) in fav_books" :key="idx+'-fav-books-'+book.id">
                 <v-card class="ma-1">
-                    <a :href="'/book/' + book.id" target="_blank">
+                    <a :href="'/book/' + book.id">
                         <v-img :src="get_book_img(book)" :title="book.title" :aspect-ratio="11/15"
-                               class="his-img"></v-img>
+                               style="border-radius: 4px"></v-img>
                     </a>
                 </v-card>
             </v-col>

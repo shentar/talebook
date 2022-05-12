@@ -15,7 +15,7 @@
             </v-col>
             <v-col cols=4 xs=4 sm=4 md=2 lg=1 v-else v-for="book in item.books" :key="item.name + book.id">
                 <v-card class="ma-1">
-                    <a :href="'/book/' + book.id" target="_blank">
+                    <a :href="'/book/' + book.id">
                         <v-img :src="get_book_img(book)" :title="book.title" :aspect-ratio="11/15"
                                class="his-img"></v-img>
                     </a>

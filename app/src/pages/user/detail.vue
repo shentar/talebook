@@ -61,7 +61,7 @@
                 </p>
                 <br/>
                 <p style="font-style: italic;font-size: smaller;color: gray;">
-                    * 1.在线阅读权限仅限非PDF类书籍，PDF书籍需要下载权限；2.编辑和删除权限仅限自己上传的书籍。
+                    * 1.在线阅读权限仅限非PDF类书籍，PDF书籍需要下载权限；2.编辑和删除权限仅限自己上传的书籍；3.未激活用户仅支持浏览导航页。
                 </p>
             </v-col>
 
@@ -124,6 +124,15 @@ export default {
                 if (perms === undefined) {
                     perms = "usedpr"
                 }
+
+                if (this.user.is_active === undefined || this.user.is_active === false) {
+                    if (allow) {
+                        return ""
+                    } else {
+                        return "未激活*"
+                    }
+                }
+
                 let pstr = ""
                 for (let i of Object.keys(this.permissions)) {
                     if (perms.indexOf(i.toUpperCase()) > -1) {
@@ -194,4 +203,3 @@ export default {
 }
 </script>
 
-<style></style>

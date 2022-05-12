@@ -71,7 +71,7 @@
                     </p>
                     <p class="py-6 text-center" v-else-if="refer_books.length === 0">无匹配的书籍信息</p>
                     <template v-else>
-                        <p>请选择最匹配的记录复制为本书的描述信息</p>
+                        <p style="margin-bottom: 16px">请选择最匹配的记录复制为本书的描述信息</p>
                         <book-cards :books="refer_books">
                             <template #actions="{ book }">
                                 <v-card-actions>
