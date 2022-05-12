@@ -284,11 +284,11 @@ class BookRefer(BaseHandler):
 
 class BookEdit(BaseHandler):
     @js
-    def post(self, bid):
+    def post(self, id):
         if not self.current_user:
             return self.redirect("/login?from=/book/%d" % int(id))
 
-        book = self.get_book(bid)
+        book = self.get_book(id)
         if not book:
             return {"err": "book not exist"}
         bid = book["id"]
@@ -331,11 +331,11 @@ class BookEdit(BaseHandler):
 
 class BookDelete(BaseHandler):
     @js
-    def post(self, bid):
+    def post(self, id):
         if not self.current_user:
             return self.redirect("/login?from=/book/%d" % int(id))
 
-        book = self.get_book(bid)
+        book = self.get_book(id)
         bid = book["id"]
         if isinstance(book["collector"], dict):
             cid = book["collector"]["id"]
@@ -347,8 +347,8 @@ class BookDelete(BaseHandler):
         if not (self.is_admin() or (self.current_user.can_delete(check=True) and self.is_book_owner(bid, cid))):
             return {"err": "permission", "msg": _(u"无权删除书籍")}
 
+        self.session.query(Item).filter(Item.book_id == bid).delete()
         self.db.delete_book(bid)
-        self.session.query(Item).filter(Item.id == bid.id).delete()
         self.session.commit()
         # self.add_msg("success", _(u"删除书籍《%s》") % book["title"])
         return {"err": "ok"}
