@@ -34,10 +34,10 @@ export default {
                 return []
             }
             return [
-                {name: '我的书籍', books: this.get_history(this.user.extra.upload_history)},
+                {name: '我的上传', books: this.get_history(this.user.extra.upload_history)},
                 {name: '在线阅读', books: this.get_history(this.user.extra.read_history)},
-                {name: '下载书籍', books: this.get_history(this.user.extra.download_history)},
-                {name: '推送过的书', books: this.get_history(this.user.extra.push_history)},
+                {name: '下载记录', books: this.get_history(this.user.extra.download_history)},
+                {name: '推送记录', books: this.get_history(this.user.extra.push_history)},
                 {name: '浏览记录', books: this.get_history(this.user.extra.visit_history)},
             ]
         },
@@ -65,7 +65,7 @@ export default {
         return app.$backend("/user/info?detail=1");
     },
     head: () => ({
-        title: "阅读记录",
+        title: "近期访问记录",
     }),
     created() {
         this.init(this.$route);

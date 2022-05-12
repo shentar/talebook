@@ -375,7 +375,8 @@ class UserInfo(BaseHandler):
 
                     hbs = {}
                     hb_list = []
-                    books = self.db.get_data_as_dict(ids=v)
+                    # 只取前60本。
+                    books = self.db.get_data_as_dict(ids=v[:100])
                     for b in books:
                         hb = {
                             "id": b["id"],
@@ -386,7 +387,7 @@ class UserInfo(BaseHandler):
                     for idx in v:
                         if idx in hbs:
                             hb_list.append(hbs[idx])
-                    d["extra"][k] = hb_list
+                    d["extra"][k] = hb_list[:60]
         return d
 
     @js
