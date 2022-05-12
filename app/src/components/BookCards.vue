@@ -1,9 +1,9 @@
 <template>
-    <v-row>
+    <v-row type="flex">
         <v-col cols=12 xs=12 sm=6 md=4 lg=3 v-for="(book,idx) in render_books" :key="idx+'-books-'+book.id"
-               class="book-list-card">
-            <v-card :href="book.href" target="_blank">
-                <v-row>
+               class="book-list-card" type="flex">
+            <v-card :href="book.href" target="_blank" type="flex">
+                <v-row type="flex">
                     <v-col cols=4 class='col-book-img'>
                         <v-img :src="book.img" :title="book.title" :aspect-ratio="11/15" class="book-img-card"></v-img>
                     </v-col>
@@ -52,7 +52,7 @@ export default {
     /*height: 1em;*/
     overflow-y: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     text-overflow: clip;
     text-align: left;
@@ -100,6 +100,13 @@ export default {
 
 .book-img-card {
     border-radius: 4px;
+}
+
+</style>
+
+<style>
+.v-application p {
+    margin-bottom: 0;
 }
 
 </style>

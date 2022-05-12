@@ -42,7 +42,6 @@ export default {
         page_size: 20,
     }),
     async asyncData({app, route, res}) {
-        this.page = 0
         if (res !== undefined) {
             res.setHeader('Cache-Control', 'no-cache');
         }
