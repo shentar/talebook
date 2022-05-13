@@ -370,7 +370,7 @@ class UserInfo(BaseHandler):
             if detail:
                 d["pems"] = user.permission
                 for k, v in user.extra.items():
-                    if not k.endswith("_history"):
+                    if not k.endswith("_history") or not v:
                         continue
 
                     hbs = {}
@@ -405,6 +405,41 @@ class UserInfo(BaseHandler):
         return rsp
 
 
+class ClearUserHis(BaseHandler):
+    @js
+    def delete(self):
+        if not self.current_user:
+            return {
+                "err": "error",
+                "msg": _(u"请登录后操作"),
+                "to": "/login?from=/user/history"
+            }
+        if not self.current_user.is_active():
+            return {
+                "err": "error",
+                "msg": _(u"请先激活账号后操作"),
+            }
+
+        user = self.current_user
+        action = self.get_argument("action", None)
+        if action:
+            action += "_history"
+        else:
+            return {
+                "err": "error",
+                "msg": _(u"清理目标为空")
+            }
+
+        if user.extra and action and action in user.extra:
+            del user.extra[action]
+            user.save()
+
+        return {
+            "err": "ok",
+            "msg": _(u"清理历史记录成功")
+        }
+
+
 class Welcome(BaseHandler):
     def should_be_invited(self):
         pass
@@ -436,6 +471,7 @@ def routes():
         (r"/api/user/sign_out", SignOut),
         (r"/api/user/update", UserUpdate),
         (r"/api/user/reset", UserReset),
+        (r"/api/user/clearhis", ClearUserHis),
         (r"/api/user/active/send", UserSendActive),
         (r"/api/active/(.*)/(.*)", UserActive),
         (r"/api/done/", Done),

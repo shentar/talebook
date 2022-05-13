@@ -7,8 +7,20 @@
         </v-row>
         <v-row v-else v-for="item in history" :key="item.name">
             <v-col cols=12 xs=6>
-                <legend>{{ item.name }}</legend>
-                <v-divider></v-divider>
+                <v-row style="align-items: center">
+                    <v-col cols=6 style="text-align: start">
+                        <legend>{{ item.name }}</legend>
+                    </v-col>
+                    <v-col cols=6 style="text-align: end">
+                        <v-btn v-if="item.id!=='upload' && item.books.length > 0"
+                               @click="clear_his(item.id, item.name)">
+                            一键清理
+                        </v-btn>
+                    </v-col>
+                </v-row>
+                <v-row>
+                    <v-divider></v-divider>
+                </v-row>
             </v-col>
             <v-col cols=12 xs=6 v-if="item.books.length === 0">
                 <p class="pb-6">无记录</p>
@@ -34,11 +46,11 @@ export default {
                 return []
             }
             return [
-                {name: '我的上传', books: this.get_history(this.user.extra.upload_history)},
-                {name: '在线阅读', books: this.get_history(this.user.extra.read_history)},
-                {name: '下载记录', books: this.get_history(this.user.extra.download_history)},
-                {name: '推送记录', books: this.get_history(this.user.extra.push_history)},
-                {name: '浏览记录', books: this.get_history(this.user.extra.visit_history)},
+                {id: 'upload', name: '我的上传', books: this.get_history(this.user.extra.upload_history)},
+                {id: 'read', name: '在线阅读', books: this.get_history(this.user.extra.read_history)},
+                {id: 'download', name: '下载记录', books: this.get_history(this.user.extra.download_history)},
+                {id: 'push', name: '推送记录', books: this.get_history(this.user.extra.push_history)},
+                {id: 'visit', name: '浏览记录', books: this.get_history(this.user.extra.visit_history)},
             ]
         },
         get_book_img() {
@@ -90,6 +102,20 @@ export default {
                 b.href = '/book/' + b.id;
                 return b;
             });
+        },
+        clear_his(action, name) {
+            this.$backend("/user/clearhis?action=" + action, {
+                method: "DELETE"
+            }).then(
+                (rsp) => {
+                    if (rsp.err === "ok") {
+                        this.init()
+                        this.$alert("success", "清理 \"" + name + "\" 成功")
+                    } else {
+                        this.$alert("err", "清理 \"" + name + "\" 失败", rsp.to)
+                    }
+                }
+            )
         },
     },
 }
