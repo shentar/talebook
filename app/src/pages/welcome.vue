@@ -1,6 +1,6 @@
 <template>
     <v-row justify=center class='fill-center'>
-        <v-col xs=12 sm=8 md=4>
+        <v-col xs=12 sm=8 md=4 style="margin-top: 50px">
             <v-card class="elevation-12">
                 <v-toolbar dark color="primary">
                     <v-toolbar-title align-center>请输入访问密码</v-toolbar-title>
@@ -37,7 +37,7 @@ export default {
         form: null,
         err: false,
         err_msg: "",
-        msg: "本站为私人图书馆，需输入密码才可进行访问",
+        msg: "本站为非公开访问图书馆，需输入密码才可进行访问",
         loading: false,
         invite_code: "",
     }),
@@ -48,7 +48,7 @@ export default {
         return app.$backend("/welcome");
     },
     head: () => ({
-        title: "私人图书馆"
+        title: "非公开访问图书馆"
     }),
     created() {
         this.$store.commit('navbar', false);
