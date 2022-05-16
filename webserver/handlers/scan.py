@@ -22,7 +22,8 @@ SCAN_DIR_PREFIX = "/data/"  # 限定扫描必须在/data/目录下，以防黑�
 
 
 class Scanner:
-    def __init__(self, calibre_db, session_db, user_id=None):
+    def __init__(self, calibre_db, session_db, user_id=None, base_handler=None):
+        self.base_handler = base_handler
         self.db = calibre_db
         self.session = session_db
         self.user_id = user_id
@@ -46,7 +47,7 @@ class Scanner:
         except Exception as err:
             logging.error(traceback.format_exc())
             self.session.rollback()
-            logging.warn("save error: %s", err)
+            logging.warning("save error: %s", err)
             return False
 
     def run_scan(self, path_dir):
@@ -211,7 +212,7 @@ class Scanner:
             row.book_id = self.db.import_book(mi, [fpath])
             row.status = ScanFile.IMPORTED
             self.save_or_rollback(row)
-
+            self.base_handler.user_history("upload_history", row.book_id)
             # 添加关联表
             item = Item()
             item.book_id = row.book_id
@@ -366,7 +367,7 @@ class ImportRun(BaseHandler):
         if hashlist == "all":
             hashlist = None
 
-        m = Scanner(self.db, self.session, self.user_id())
+        m = Scanner(self.db, self.session, user_id=self.user_id(), base_handler=self)
         total = m.run_import(hashlist)
         if total == 0:
             return {"err": "empty", "msg": _("没有等待导入书库的书籍！")}
