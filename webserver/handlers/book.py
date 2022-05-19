@@ -479,8 +479,17 @@ class SearchBook(ListHandler):
             return self.write({"err": "params.invalid", "msg": _(u"请输入搜索关键字")})
 
         title = _(u"搜索：%(name)s") % {"name": name}
-        ids = self.cache.search(name)
-        return self.render_book_list(ids=ids, title=title)
+        id_set = set()
+        id_list = []
+        for i in ["title", "author", "tag"]:
+            ids_tmp = self.cache.search("%s:%s" % (i, name))
+            for id in ids_tmp:
+                if id not in id_set:
+                    id_set.add(id)
+                    id_list.append(id)
+            logging.info("keyword: %s:%s" % (i, name))
+            logging.info("books: {}".format(ids_tmp))
+        return self.render_book_list(ids=id_list, title=title)
 
 
 class HotBook(ListHandler):
