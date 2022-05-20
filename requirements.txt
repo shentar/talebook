@@ -7,3 +7,4 @@ bs4
 
 # build-in support for MYSQL
 pymysql
+pypdf2

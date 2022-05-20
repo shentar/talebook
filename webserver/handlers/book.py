@@ -20,7 +20,7 @@ from webserver import constants, loader, utils
 from webserver.handlers.base import BaseHandler, ListHandler, js
 from webserver.models import Item
 from webserver.plugins.meta import baike, douban
-from webserver.utils import check_email
+from webserver.utils import check_email, PdfCopyer
 
 CONF = loader.get_settings()
 _q = queue.Queue()
@@ -443,7 +443,7 @@ class BookDownload(BaseHandler):
         path = book["fmt_%s" % fmt]
         book["fmt"] = fmt
         book["title"] = urllib.parse.quote_plus(book["title"])
-        fname = "%(id)d-%(title)s.%(fmt)s" % book
+        fname = "%(title)s.%(fmt)s" % book
         att = u"attachment; filename=\"%s\"; filename*=UTF-8''%s" % (fname, fname)
         if is_opds:
             att = u'attachment; filename="%(id)d.%(fmt)s"' % book
@@ -547,7 +547,7 @@ class BookUpload(BaseHandler):
 
         name, data = self.get_upload_file()
         name = re.sub(r"[\x80-\xFF]+", BookUpload.convert, name)
-        logging.error("upload book name = " + repr(name))
+        logging.warning("upload book name = " + repr(name))
         fmt = os.path.splitext(name)[1]
         fmt = fmt[1:] if fmt else None
         if not fmt:
@@ -585,7 +585,7 @@ class BookUpload(BaseHandler):
         os.remove(fpath)
 
         self.user_history("upload_history", book_id)
-        self.add_msg("success", _(u"导入书籍成功！"))
+        # self.add_msg("success", _(u"导入书籍成功！"))
         item = Item()
         item.book_id = book_id
         item.collector_id = self.user_id()
@@ -593,8 +593,24 @@ class BookUpload(BaseHandler):
         return {"err": "ok", "book_id": book_id}
 
 
+class BookStream:
+    def __init__(self, stream):
+        self.stream = stream
+        self.write_pos = 0
+
+    def write(self, chunk):
+        self.stream.write(chunk)
+        self.write_pos += len(chunk)
+
+    def tell(self):
+        return self.write_pos
+
+
 class BookRead(BaseHandler):
+    write_pos: int
+
     def get(self, id):
+        self.write_pos = 0
         ua = self.request.headers.get("user-agent", "agent")
         if "micromessenger" in ua.lower():
             raise web.HTTPError(400, reason=_(u"不支持微信打开阅读页面，请在浏览器打开：<br/>1. 请点击右上角按钮<br/>2. 选择【在浏览器中打开】"))
@@ -638,7 +654,8 @@ class BookRead(BaseHandler):
             path = book["fmt_pdf"]
             self.set_header("Content-Type", "application/pdf")
             with open(path, "rb") as f:
-                self.write(f.read())
+                pc = PdfCopyer()
+                pc(f, book["title"]).write(BookStream(self))
             return
 
         raise web.HTTPError(404, reason=_(u"抱歉，在线阅读器暂不支持该格式的书籍"))

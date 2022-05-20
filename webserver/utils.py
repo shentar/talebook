@@ -6,6 +6,9 @@ import datetime
 import re
 from gettext import gettext as _
 
+import PyPDF2
+from PyPDF2 import generic
+
 
 class SimpleBookFormatter:
     """格式化calibre book的字段"""
@@ -159,3 +162,55 @@ def check_email(addr):
     if re.match(r"[^@]+@[^@]+\.[^@]+", addr):
         return True
     return False
+
+
+class PdfCopyer:
+    def __init__(self):
+        self.page_marks = {}
+        self.page_labels = {}
+
+    def get_bookmark_info(self, str_line, level_id):
+        dtn = str_line
+        idobj = dtn.page
+        if idobj and not isinstance(idobj, generic.NullObject):
+            return level_id, self.page_labels[idobj.idnum], dtn.title, dtn.typ
+        else:
+            return None
+
+    def get_fist_grade(self, str_line, level_id=0):
+        num = level_id
+        parent_id = level_id
+        for sub_line in str_line:
+            if isinstance(sub_line, list):
+                num, parent_id = self.get_fist_grade(sub_line, num)
+            else:
+                num = num + 1
+                self.page_marks[num] = self.get_bookmark_info(sub_line, level_id)
+        return num, parent_id
+
+    def __call__(self, pdf_file, title):
+        pdf_reader = PyPDF2.PdfFileReader(pdf_file)
+        pdf_writer = PyPDF2.PdfFileWriter()
+        count = pdf_reader.numPages
+        for i in range(count):
+            page = pdf_reader.getPage(i)
+            self.page_labels[page.indirectRef.idnum] = i
+            pdf_writer.addPage(page)
+
+        outlines = pdf_reader.getOutlines()
+        self.get_fist_grade(outlines)
+        pg_marks = {}
+        for i in range(1, len(self.page_marks) + 1):
+            if not self.page_marks[i]:
+                continue
+            (pt_index, pgnum, pgtitle, bktyp) = self.page_marks[i]
+            if pt_index == 0:
+                pg_marks[i] = pdf_writer.addBookmark(pgtitle, pgnum)
+            else:
+                pts = pg_marks[pt_index]
+                pg_marks[i] = pdf_writer.addBookmark(pgtitle, pgnum, parent=pts)
+
+        pdf_writer.addMetadata(pdf_reader.getDocumentInfo())
+        pdf_writer.addMetadata({'/Title': '%s' % title})
+
+        return pdf_writer
