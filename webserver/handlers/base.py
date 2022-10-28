@@ -629,7 +629,10 @@ class BaseHandler(web.RequestHandler):
     def mail(self, sender, to, subject, body, attachment_data=None, attachment_name=None, **kwargs):
         from calibre.utils.smtp import sendmail
 
+        smtp_port = 465
         relay = kwargs.get("relay", CONF["smtp_server"])
+        if ':' in relay:
+            relay, smtp_port = relay.split(":")
         username = kwargs.get("username", CONF["smtp_username"])
         logging.info("try to send an msg: %s, email: %s" % (body, to))
         password = kwargs.get("password", CONF["smtp_password"])
@@ -639,7 +642,7 @@ class BaseHandler(web.RequestHandler):
             from_=sender,
             to=[to],
             timeout=20,
-            port=465,
+            port=int(smtp_port),
             encryption="SSL",
             relay=relay,
             username=username,

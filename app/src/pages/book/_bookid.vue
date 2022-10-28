@@ -321,7 +321,7 @@
                             <v-icon dark>email</v-icon>
                         </v-list-item-avatar>
                         <v-list-item-content>
-                            <v-list-item-title>推送至Kindle</v-list-item-title>
+                            <v-list-item-title>推送至Email</v-list-item-title>
                         </v-list-item-content>
                         <v-list-item-action>
                             <v-icon>mdi-arrow-right</v-icon>

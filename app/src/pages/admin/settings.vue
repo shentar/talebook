@@ -202,11 +202,11 @@ export default {
             {
                 show: false,
                 title: "邮件服务",
-                subtitle: '邮箱注册、推送Kindle依赖此配置(请确保您的服务器或VPS服务商已开通SMTP服务的25端口)',
+                subtitle: '邮箱注册、推送邮箱依赖此配置(SMTP服务器地址可带端口，或者不带端口，默认为465号)',
                 fields: [
-                    {icon: "email", key: "smtp_server", label: "SMTP服务器"},
-                    {icon: "person", key: "smtp_username", label: "SMTP用户名"},
-                    {icon: "lock", key: "smtp_password", label: "SMTP密码"},
+                    {icon: "email", key: "smtp_server", label: "SMTP服务器(例如 smtp.mailgun.org 或者 smtp.gmail.com:587)"},
+                    {icon: "person", key: "smtp_username", label: "发件人邮箱地址(例如 user@gmail.com)"},
+                    {icon: "lock", key: "smtp_password", label: "邮箱密码"},
                 ],
                 buttons: [
                     {icon: "email", label: "测试邮件", action: "test_email"},
