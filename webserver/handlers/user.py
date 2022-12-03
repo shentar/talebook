@@ -31,18 +31,29 @@ class Done(BaseHandler):
             return
         socials = user.social_auth.all()
         if not socials:
+            logging.warning("the socials is None: %d" % user.id)
+            self.session.query(Reader).filter(Reader.id == user.id).delete()
             return
 
         si = socials[0]
-        if not user.extra:
+        if not user.create_time:
             logging.info("init new user %s, info=%s" % (user.username, si))
             user.init(si)
+            user.permission = "U"
 
-        user.check_and_update(si)
+        if not user.create_time:
+            self.session.query(Reader).filter(Reader.id == user.id).delete()
+            user = None
+        else:
+            user.check_and_update(si)
         return user
 
     def get(self):
         user = self.update_userinfo()
+        if not user:
+            self.log_out()
+            raise web.HTTPError(403, log_message=_(u"注册异常"))
+
         if not user.can_login():
             raise web.HTTPError(403, log_message=_(u"无权登录"))
         self.login_user(user)
@@ -51,6 +62,10 @@ class Done(BaseHandler):
         if not url:
             url = "/"
         self.redirect(url)
+
+    def log_out(self):
+        self.set_secure_cookie("user_id", "")
+        self.set_secure_cookie("admin_id", "")
 
 
 class UserUpdate(BaseHandler):
@@ -347,7 +362,7 @@ class UserInfo(BaseHandler):
             "extra": {},
         }
 
-        if not user:
+        if not user or not user.create_time:
             return d
 
         d.update(
