@@ -204,7 +204,7 @@ def get_upload_size():
         n = 1024 * 1024 * 1024
         s = s.split("g")[0]
     s = s.strip()
-    return int(s) * n
+    return int(float(s) * n)
 
 
 def main():
