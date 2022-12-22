@@ -653,9 +653,13 @@ class BookRead(BaseHandler):
 
             path = book["fmt_pdf"]
             self.set_header("Content-Type", "application/pdf")
-            with open(path, "rb") as f:
-                pc = PdfCopyer()
-                pc(f, book["title"]).write(BookStream(self))
+            try:
+                with open(path, "rb") as f:
+                    pc = PdfCopyer()
+                    pc(f, book["title"]).write(BookStream(self))
+            except:
+                with open(path, "rb") as f:
+                    self.write(f.read())
             return
 
         raise web.HTTPError(404, reason=_(u"抱歉，在线阅读器暂不支持该格式的书籍"))
