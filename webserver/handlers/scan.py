@@ -342,7 +342,8 @@ class ScanDelete(BaseHandler):
         count = m.delete(hashlist)
 
         for file in delete_files:
-            os.remove(file)
+            if os.path.isfile(file):
+                os.remove(file)
 
         return {"err": "ok", "msg": _(u"删除成功"), "count": count}
 
