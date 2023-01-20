@@ -116,7 +116,9 @@ class BaseHandler(web.RequestHandler):
 
     def invited_code_is_ok(self):
         t = self.get_secure_cookie("invited")
-        if t and int(float(t)) > int(time.time()) - 7 * 86400:
+        if t and int(float(t)) > int(time.time()) - 20 * 86400:
+            # 登录成功后自动刷新一次。
+            self.mark_invited()
             return True
         return False
 
