@@ -307,7 +307,7 @@ class BookRefer(BaseHandler):
                 refer_mi.cover_data = None
             if len(refer_mi.tags) + len(mi.tags) <= 2:
                 ts = []
-                for nn, tags in constants.BOOKNAV:
+                for nn, tags in constants.BOOK_NAV:
                     for tag in tags:
                         if (tag in refer_mi.title or tag in refer_mi.comments or tag in refer_mi.authors) and \
                                 tag not in constants.ESCAPED_TAGS:
@@ -378,7 +378,8 @@ class BookEdit(BaseHandler):
         if data.get("pubdate", None):
             content = douban.str2date(data["pubdate"])
             if content is None:
-                return {"err": "params.pudate.invalid", "msg": _(u"出版日期参数错误，格式应为 2019-05-10或2019-05或2019年或2019")}
+                return {"err": "params.pudate.invalid",
+                        "msg": _(u"出版日期参数错误，格式应为 2019-05-10或2019-05或2019年或2019")}
             mi.set("pubdate", content)
 
         if "tags" in data and not data["tags"]:
@@ -459,7 +460,7 @@ class BookNav(ListHandler):
     def get(self):
         tagmap = self.all_tags_with_count()
         navs = []
-        for h1, tags in constants.BOOKNAV:
+        for h1, tags in constants.BOOK_NAV:
             new_tags = [{"name": v, "count": tagmap.get(v, 0)} for v in tags if tagmap.get(v, 0) > 0]
             navs.append({"legend": h1, "tags": new_tags})
         return {"err": "ok", "navs": navs}
@@ -613,7 +614,8 @@ class BookRead(BaseHandler):
         self.write_pos = 0
         ua = self.request.headers.get("user-agent", "agent")
         if "micromessenger" in ua.lower():
-            raise web.HTTPError(400, reason=_(u"不支持微信打开阅读页面，请在浏览器打开：<br/>1. 请点击右上角按钮<br/>2. 选择【在浏览器中打开】"))
+            raise web.HTTPError(400, reason=_(
+                u"不支持微信打开阅读页面，请在浏览器打开：<br/>1. 请点击右上角按钮<br/>2. 选择【在浏览器中打开】"))
 
         if not CONF["ALLOW_GUEST_READ"]:
             if not self.current_user:

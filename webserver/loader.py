@@ -7,6 +7,8 @@ import os
 import sys
 import traceback
 
+from webserver import constants
+
 
 class SettingsLoader(dict):
     def __init__(self, *args, **kwargs):
@@ -51,17 +53,26 @@ class SettingsLoader(dict):
         except:
             pass
 
+        try:
+            import yaml
+            d = self.set_store_path()
+            tag_file = os.path.join(d, "tags.yaml")
+            tag_conf = open(tag_file, 'r', encoding="utf-8")
+            constants.BOOK_NAV = yaml.safe_load(tag_conf)['tags'].items()
+        except Exception as err:
+            logging.error("some json parsed err %s", err)
+
     def dumpfile(self, filename="auto.py"):
         s = "\n".join("%-30s: %s," % ("'" + k + "'", repr(v)) for k, v in sorted(self.items()))
         code = (
-            u"""#!/usr/bin/env python3
-#-*- coding: UTF-8 -*-
-
-import os
-settings = {
-"""
-            + s
-            + """
+                u"""#!/usr/bin/env python3
+    #-*- coding: UTF-8 -*-
+    
+    import os
+    settings = {
+    """
+                + s
+                + """
 }
 """
         )

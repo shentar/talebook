@@ -84,6 +84,7 @@ RUN rm -f /etc/nginx/sites-enabled/default /var/www/html -rf && \
     echo "VERSION = \"$GIT_VERSION\"" > webserver/version.py && \
     echo 'settings = {}' > /data/books/settings/auto.py && \
     chmod a+w /data/books/settings/auto.py && \
+    cp webserver/tags.yaml /data/books/settings/ && \
     calibredb add --library-path=/data/books/library/ -r docker/book/ && \
     rm -f webserver/*.pyc && \
     mkdir -p /prebuilt/ && \

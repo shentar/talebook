@@ -8,6 +8,10 @@ if [ ! -d "/data/books/settings" ]; then
   cp -rf /prebuilt/books/settings /data/books/
 fi
 
+if [ ! -f "/data/books/settings/tags.yaml" ]; then
+  cp -rf /prebuilt/books/settings/tags.yaml /data/books/settings/
+fi
+
 if [ ! -d "/data/books/library" ]; then
   cp -rf /prebuilt/books/library /data/books/
 fi
