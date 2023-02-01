@@ -16,7 +16,8 @@
                 </v-btn>
             </template>
             <v-spacer></v-spacer>
-            <v-text-field cols="2" dense v-model="search" append-icon="mdi-magnify" label="搜索" single-line
+            <v-text-field cols="2" dense v-model="search" append-icon="mdi-magnify" label="搜索"
+                          @keydown.enter.prevent="getDataFromApi" single-line
                           hide-details></v-text-field>
         </v-card-actions>
         <v-data-table
@@ -107,7 +108,8 @@
                     <span v-else> - </span>
                     <template v-slot:input>
                         <div class="mt-4 text-h6">修改字段</div>
-                        <v-rating label="评分" v-model="item.rating" color="yellow accent-4" length="10" dense></v-rating>
+                        <v-rating label="评分" v-model="item.rating" color="yellow accent-4" length="10"
+                                  dense></v-rating>
                     </template>
                 </v-edit-dialog>
             </template>
@@ -221,12 +223,12 @@ export default {
         headers: [
             {text: "封面", sortable: false, value: "img", width: "80px"},
             {text: "ID", sortable: true, value: "id", width: "80px"},
-            {text: "书名", sortable: true, value: "title"},
+            {text: "书名", sortable: false, value: "title"},
             {text: "作者", sortable: true, value: "author", width: "100px"},
-            {text: "评分", sortable: false, value: "rating", width: "60px"},
-            {text: "出版社", sortable: false, value: "publisher"},
+            {text: "评分", sortable: true, value: "rating", width: "100px"},
+            {text: "出版社", sortable: true, value: "publisher"},
             {text: "标签", sortable: true, value: "tags", width: "100px"},
-            {text: "简介", sortable: true, value: "comments"},
+            {text: "简介", sortable: false, value: "comments"},
             {text: "操作", sortable: false, value: "actions"},
         ],
         progress: {
