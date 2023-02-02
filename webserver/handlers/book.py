@@ -106,18 +106,20 @@ class BookDetail(BaseHandler):
         book = self.get_book(id)
         self.user_history("visit_history", id)
         douban_id = self.count_increase(id, count_visit=1)
+        if not douban_id:
+            douban_id = self.fetch_douban_id(book, id)
 
         # 检查用户是否收藏了本书。
-        isFav = False
+        is_fav = False
         if self.current_user and self.current_user.extra:
             favs = self.current_user.extra.get("fav_history", [])
             if len(favs) > 0:
                 for i in range(0, len(favs)):
                     if favs[i] == int(id):
-                        isFav = True
+                        is_fav = True
                         break
         book = utils.BookFormatter(self, book).format(with_files=True, with_perms=True)
-        book.update({"fav": isFav})
+        book.update({"fav": is_fav})
 
         return {
             "err": "ok",
@@ -125,6 +127,47 @@ class BookDetail(BaseHandler):
             "book": book,
             "dbid": douban_id
         }
+
+    def fetch_douban_id(self, book, id):
+        douban_id = ""
+        if not CONF["douban_baseurl"]:
+            return douban_id
+
+        try:
+            isbn = book.get('isbn')
+            if not isbn or isbn == '0000000000001':
+                return douban_id
+
+            api = douban.DoubanBookApi(
+                CONF["douban_apikey"],
+                CONF["douban_baseurl"],
+                copy_image=False,
+                manual_select=False,
+                maxCount=CONF["douban_max_count"],
+            )
+            douban_book = api.get_book_by_isbn(isbn)
+            if not douban_book:
+                return douban_id
+
+            douban_meta = api._metadata(douban_book)
+            if not douban_meta:
+                return douban_id
+
+            douban_id = douban_meta.get('provider_value')
+            if douban_id:
+                try:
+                    item = self.session.query(Item).filter(Item.book_id == id).one()
+                except:
+                    item = Item()
+                    item.book_id = id
+
+                if item.website != douban_id:
+                    item.website = douban_id
+                    item.save()
+        except:
+            pass
+
+        return douban_id
 
 
 class BookFavor(BaseHandler):
