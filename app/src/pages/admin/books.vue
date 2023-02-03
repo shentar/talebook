@@ -42,13 +42,10 @@
                 <v-chip small v-else-if="item.status == 'new'" class="grey">待扫描</v-chip>
                 <v-chip small v-else class="info">{{ item.status }}</v-chip>
             </template>
-            <template v-slot:item.img="{ item }">
-                <a target="_blank" :href="item.img">
+            <template v-slot:item.id="{ item }">
+                <a target="_blank" :href="`/book/${item.id}`">
                     <v-img :src="item.thumb" class="my-1" max-height="80" :aspect-ratio="3/4"/>
                 </a>
-            </template>
-            <template v-slot:item.id="{ item }">
-                <a target="_blank" :href="`/book/${item.id}`">{{ item.id }}</a>
             </template>
             <template v-slot:item.title="{ item }">
                 <v-edit-dialog large :return-value.sync="item.title" @save="save(item, 'title')" save-text="保存"
@@ -61,7 +58,17 @@
                     </template>
                 </v-edit-dialog>
             </template>
+            <template v-slot:item.isbn="{ item }">
+                <v-edit-dialog large :return-value.sync="item.isbn" @save="save(item, 'isbn')" save-text="保存"
+                               cancel-text="取消">
+                    <span class="three-lines" style="max-width: 200px">{{ item.isbn }}</span>
 
+                    <template v-slot:input>
+                        <div class="mt-4 text-h6">修改字段</div>
+                        <v-textarea v-model="item.isbn" label="ISBN" style="min-width: 400px" counter></v-textarea>
+                    </template>
+                </v-edit-dialog>
+            </template>
             <template v-slot:item.author="{ item }">
                 <v-edit-dialog large :return-value.sync="item.author" @save="save(item, 'authors')" save-text="保存"
                                cancel-text="取消">
@@ -186,8 +193,13 @@
                         </v-btn>
                     </template>
                     <v-list dense>
+                        <v-list-item>
+                            <v-list-item-title>
+                                <a target="_blank" :href="`/book/${item.id}/edit`">编辑</a>
+                            </v-list-item-title>
+                        </v-list-item>
                         <v-list-item @click="delete_book(item)">
-                            <v-list-item-title>删除此书</v-list-item-title>
+                            <v-list-item-title>删除</v-list-item-title>
                         </v-list-item>
                     </v-list>
                 </v-menu>
@@ -221,9 +233,9 @@ export default {
         loading: false,
         options: {sortBy: ["id"], sortDesc: [true]},
         headers: [
-            {text: "封面", sortable: false, value: "img", width: "80px"},
-            {text: "ID", sortable: true, value: "id", width: "80px"},
+            {text: "封面", sortable: true, value: "id", width: "80px"},
             {text: "书名", sortable: false, value: "title"},
+            {text: "ISBN", sortable: true, value: "isbn", width: "80px"},
             {text: "作者", sortable: true, value: "author", width: "100px"},
             {text: "评分", sortable: true, value: "rating", width: "100px"},
             {text: "出版社", sortable: true, value: "publisher"},

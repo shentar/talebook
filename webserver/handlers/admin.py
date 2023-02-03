@@ -449,9 +449,15 @@ class AdminBookList(BaseHandler):
         num = max(10, int(self.get_argument("num", 20)))
         page = max(0, int(self.get_argument("page", 1)) - 1)
         sort = self.get_argument("sort", "id")
-        desc = self.get_argument("desc", "desc") == "true"
+        if sort not in ["id", "rating", "isbn", "publisher", "tags", "title", "author", "comments"]:
+            sort = "id"
+        desc_str = self.get_argument("desc", "true")
+        if desc_str not in ["true", "false"]:
+            desc_str = "true"
+        desc = desc_str == "true"
+
         search = self.get_argument("search", "")
-        logging.debug("num=%d, page=%d, sort=%s, desc=%s" % (num, page, sort, desc))
+        logging.info("num=%d, page=%d, sort=%s, desc=%s" % (num, page, sort, desc))
 
         self.db.sort(field=sort, ascending=(not desc))
         start = page * num
