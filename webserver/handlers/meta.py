@@ -54,6 +54,7 @@ class MetaList(ListHandler):
         if items:
             if meta == "rating":
                 items.sort(key=lambda x: x["name"], reverse=True)
+                items.append({"id": 100, "name": "未评", "count": self.get_bookcount_without_rating()})
             else:
                 hotline = int(math.log10(count)) if count > SHOW_NUMBER else 0
                 items = [v for v in items if v["count"] >= hotline]
@@ -71,20 +72,31 @@ class MetaBooks(ListHandler):
             "rating": _("评分为%(name)s星的书籍"),
             "publisher": _(u'"%(name)s"出版的书籍'),
         }
-        title = titles.get(meta, _(u"未知")) % vars()  # noqa: F841
-        category = meta + "s" if meta in ["tag", "author"] else meta
-        if meta in ["rating"]:
-            name = int(name)
-        books = self.get_item_books(category, name)
-        count = len(books)
-        books.sort(key=cmp_to_key(utils.compare_books_by_rating_or_id), reverse=True)
         start = self.get_argument_start()
         try:
             size = int(self.get_argument("size"))
         except:
             size = 60
         delta = min(max(size, 60), 100)
-        books = books[start:start + delta]
+
+        title = titles.get(meta, _(u"未知")) % vars()  # noqa: F841
+        category = meta + "s" if meta in ["tag", "author"] else meta
+        if meta in ["rating"]:
+            try:
+                name = int(name)
+            except:
+                name = 0
+
+        if meta == "rating" and name == 0:
+            ids = self.get_book_ids_without_rating()
+            count = len(ids)
+            books = self.get_books(ids=ids[start:start + delta])
+        else:
+            books = self.get_item_books(category, name)
+            count = len(books)
+        books.sort(key=cmp_to_key(utils.compare_books_by_rating_or_id), reverse=True)
+        if not (meta == "rating" and name == 0):
+            books = books[start:start + delta]
         return {
             "err": "ok",
             "title": title,

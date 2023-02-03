@@ -135,7 +135,7 @@ class BookDetail(BaseHandler):
 
         try:
             isbn = book.get('isbn')
-            if not isbn or isbn == '0000000000001':
+            if not isbn or str(isbn).startswith('000000000'):
                 return douban_id
 
             api = douban.DoubanBookApi(

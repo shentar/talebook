@@ -381,8 +381,8 @@ class BaseHandler(web.RequestHandler):
             "messages": self.pop_messages(),
             "count_all_users": self.session.query(sql_func.count(Reader.id)).scalar(),
             "count_hot_users": self.session.query(sql_func.count(Reader.id))
-                .filter(Reader.access_time > last_week)
-                .scalar(),
+            .filter(Reader.access_time > last_week)
+            .scalar(),
             "IMG": self.cdn_url,
             "SITE_TITLE": CONF["site_title"],
         }
@@ -460,7 +460,8 @@ class BaseHandler(web.RequestHandler):
             ipdownloads.dcount = 1
         else:
             if ipdownloads.dcount >= max_download_count:
-                raise web.HTTPError(400, reason=_(u"由于服务器压力过载，每个IP地址一天最多下载/推送%d本书" % max_download_count))
+                raise web.HTTPError(400, reason=_(
+                    u"由于服务器压力过载，每个IP地址一天最多下载/推送%d本书" % max_download_count))
             ipdownloads.dcount += 1
         ipdownloads.save()
 
@@ -522,6 +523,17 @@ class BaseHandler(web.RequestHandler):
         rows = self.cache.backend.conn.get(sql)
         items = [{"id": a, "name": b, "count": c} for a, b, c in rows]
         return items
+
+    def get_bookcount_without_rating(self):
+        sql = """select count(id) as cc from books where id not in (select book from books_ratings_link)"""
+        rows = self.cache.backend.conn.get(sql)
+        return rows[0][0]
+
+    def get_book_ids_without_rating(self):
+        sql = """select id from books where id not in (select book from books_ratings_link) order by id desc"""
+        rows = self.cache.backend.conn.get(sql)
+        ids = [x[0] for x in rows]
+        return ids
 
     def books_by_id(self):
         sql = "SELECT id FROM books order by id desc"
