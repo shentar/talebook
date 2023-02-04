@@ -432,9 +432,6 @@ class BaseHandler(web.RequestHandler):
             maps[b.book_id] = d
         for book in books:
             book.update(maps.get(book["id"], empty_item))
-            if logging.getLevelName(logging.getLogger().level) == "DEBUG":
-                logging.debug("one book in json: %s" % json.dumps(book))
-                logging.debug("one book: {}" % book)
         logging.debug(
             "[%5d ms] select books from database (count = %d)" % (int(1000 * (time.time() - _ts)), len(books))
         )

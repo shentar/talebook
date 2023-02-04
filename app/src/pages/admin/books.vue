@@ -59,13 +59,11 @@
                 </v-edit-dialog>
             </template>
             <template v-slot:item.isbn="{ item }">
-                <v-edit-dialog large :return-value.sync="item.isbn" @save="save(item, 'isbn')" save-text="保存"
-                               cancel-text="取消">
-                    <span class="three-lines" style="max-width: 200px">{{ item.isbn }}</span>
-
+                 <v-edit-dialog large :return-value.sync="item.isbn" @save="save(item, 'isbn')" save-text="保存" cancel-text="取消">
+                    {{ item.isbn }}
                     <template v-slot:input>
                         <div class="mt-4 text-h6">修改字段</div>
-                        <v-textarea v-model="item.isbn" label="ISBN" style="min-width: 400px" counter></v-textarea>
+                        <v-text-field v-model="item.isbn" label="ISBN" counter></v-text-field>
                     </template>
                 </v-edit-dialog>
             </template>
@@ -185,6 +183,18 @@
                     </template>
                 </v-edit-dialog>
             </template>
+            <template v-slot:item.douban_id="{ item }">
+                <v-chip v-if='item.douban_id !== "Unknown"'
+                        rounded
+                        small
+                        dark
+                        color="green"
+                        :href="`//book.douban.com/subject/${item.douban_id}`"
+                        target="__blank">
+                    <v-icon>explore</v-icon>
+                    豆瓣
+                </v-chip>
+            </template>
             <template v-slot:item.actions="{ item }">
                 <v-menu offset-y right>
                     <template v-slot:activator="{ on }">
@@ -204,20 +214,7 @@
                     </v-list>
                 </v-menu>
             </template>
-            <template v-slot:item.douban="{ item }">
-                <a target="_blank" :href="`//book.douban.com/subject/${item.website}`">
-                    <v-chip v-if="db_link !== undefined"
-                            rounded
-                            small
-                            dark
-                            color="green"
-                            :href="db_link"
-                            target="__blank">
-                        <v-icon>explore</v-icon>
-                        豆瓣链接
-                    </v-chip>
-                </a>
-            </template>
+
         </v-data-table>
         <!-- 小浮窗提醒 -->
         <v-snackbar v-model="snack" :timeout="1000" :color="snackColor">
@@ -254,8 +251,8 @@ export default {
             {text: "出版社", sortable: true, value: "publisher"},
             {text: "标签", sortable: true, value: "tags", width: "100px"},
             {text: "简介", sortable: false, value: "comments"},
+            {text: "链接", sortable: false, value: "douban_id", width: "80px"},
             {text: "操作", sortable: false, value: "actions"},
-            {text: "豆瓣链接", sortable: false, value: "douban", width: "160px"},
         ],
         progress: {
             done: 0,
