@@ -204,8 +204,21 @@
                     </v-list>
                 </v-menu>
             </template>
+            <template v-slot:item.douban="{ item }">
+                <a target="_blank" :href="`//book.douban.com/subject/${item.website}`">
+                    <v-chip v-if="db_link !== undefined"
+                            rounded
+                            small
+                            dark
+                            color="green"
+                            :href="db_link"
+                            target="__blank">
+                        <v-icon>explore</v-icon>
+                        豆瓣链接
+                    </v-chip>
+                </a>
+            </template>
         </v-data-table>
-
         <!-- 小浮窗提醒 -->
         <v-snackbar v-model="snack" :timeout="1000" :color="snackColor">
             {{ snackText }}
@@ -242,6 +255,7 @@ export default {
             {text: "标签", sortable: true, value: "tags", width: "100px"},
             {text: "简介", sortable: false, value: "comments"},
             {text: "操作", sortable: false, value: "actions"},
+            {text: "豆瓣链接", sortable: false, value: "douban", width: "160px"},
         ],
         progress: {
             done: 0,
