@@ -459,20 +459,34 @@ class AdminBookList(BaseHandler):
         search = self.get_argument("search", "")
         logging.info("num=%d, page=%d, sort=%s, desc=%s" % (num, page, sort, desc))
 
-        self.db.sort(field=sort, ascending=(not desc))
         start = page * num
         end = start + num
-        all_ids = list(self.cache.search(search))
-        total = len(all_ids)
 
-        # sort by id
+        all_ids = []
+        if search:
+            id_set = set()
+            for i in ["title", "author", "tag"]:
+                ids_tmp = self.cache.search("%s:%s" % (i, search))
+                for id in ids_tmp:
+                    if id not in id_set:
+                        id_set.add(id)
+                        all_ids.append(id)
+        else:
+            if sort != "id":
+                self.db.sort(field=sort, ascending=(not desc))
+            all_ids = self.search_for_books("")
+
         if sort == "id":
             all_ids.sort(reverse=desc)
+
+        total = len(all_ids)
 
         books = []
         page_ids = all_ids[start:end]
         if page_ids:
             books = [SimpleBookFormatter(b, self.cdn_url).format() for b in self.get_books(ids=page_ids)]
+            if sort == "id":
+                books.sort(key=lambda x: x["id"], reverse=desc)
 
         return {"err": "ok", "items": books, "total": total}
 
