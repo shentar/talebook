@@ -525,7 +525,7 @@ class SearchBook(ListHandler):
         title = _(u"搜索：%(name)s") % {"name": name}
         id_set = set()
         id_list = []
-        for i in ["title", "author", "tag"]:
+        for i in ["title", "author", "tag", "series"]:
             ids_tmp = self.cache.search("%s:%s" % (i, name))
             for id in ids_tmp:
                 if id not in id_set:

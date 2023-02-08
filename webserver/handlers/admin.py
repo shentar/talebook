@@ -465,7 +465,7 @@ class AdminBookList(BaseHandler):
         all_ids = []
         if search:
             id_set = set()
-            for i in ["title", "author", "tag"]:
+            for i in ["title", "author", "tag", "series"]:
                 ids_tmp = self.cache.search("%s:%s" % (i, search))
                 for id in ids_tmp:
                     if id not in id_set:
