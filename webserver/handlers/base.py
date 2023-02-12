@@ -530,6 +530,18 @@ class BaseHandler(web.RequestHandler):
         rows = self.cache.backend.conn.get(sql)
         return rows[0][0]
 
+    def get_book_names_dup(self):
+        sql = """select title,count(title) as c from books group by title order by c desc"""
+        rows = self.cache.backend.conn.get(sql)
+        items = []
+        total = 0
+        for a, b in rows:
+            if int(b) < 2:
+                break
+            total += int(b)
+            items.append(a)
+        return items, total
+
     def get_book_ids_without_rating(self):
         sql = """select id from books where id not in (select book from books_ratings_link) order by id desc"""
         rows = self.cache.backend.conn.get(sql)

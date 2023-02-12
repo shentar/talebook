@@ -448,6 +448,25 @@ class AdminBookList(BaseHandler):
 
         num = max(10, int(self.get_argument("num", 20)))
         page = max(0, int(self.get_argument("page", 1)) - 1)
+        start = page * num
+        end = start + num
+
+        dup = self.get_argument("dup", "false")
+        if dup == "true":
+            ids = []
+            all_names, total = self.get_book_names_dup()
+            for i in all_names:
+                from calibre.ebooks.metadata.book.base import Metadata
+                ids.extend(self.db.books_with_same_title(Metadata(title=i)))
+                if len(ids) > end:
+                    break
+            page_ids = ids[start:end]
+            books = []
+            if len(page_ids) > 0:
+                books = [SimpleBookFormatter(b, self.cdn_url).format() for b in self.get_books(ids=page_ids)]
+                books.sort(key=lambda x: x["title"])
+            return {"err": "ok", "items": books, "total": total}
+
         sort = self.get_argument("sort", "id")
         if sort not in ["id", "rating", "isbn", "publisher", "tags", "title", "author", "comments"]:
             sort = "id"
@@ -458,9 +477,6 @@ class AdminBookList(BaseHandler):
 
         search = self.get_argument("search", "")
         logging.info("num=%d, page=%d, sort=%s, desc=%s" % (num, page, sort, desc))
-
-        start = page * num
-        end = start + num
 
         all_ids = []
         if search:

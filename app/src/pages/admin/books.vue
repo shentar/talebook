@@ -9,7 +9,12 @@
                 <v-icon>mdi-reload</v-icon>
                 刷新
             </v-btn>
+            <v-spacer width="20px"></v-spacer>
+            <v-checkbox :disabled="loading" v-model="getdup" :label="`获取重复书籍`">
+            </v-checkbox>
+
             <template v-if="books_selected.length > 0">
+                <v-spacer width="20px"></v-spacer>
                 <v-btn :disabled="loading" outlined color="info" @click="auto_fetch">
                     <v-icon>mdi-delete</v-icon>
                     自动填充空缺字段
@@ -59,7 +64,8 @@
                 </v-edit-dialog>
             </template>
             <template v-slot:item.isbn="{ item }">
-                 <v-edit-dialog large :return-value.sync="item.isbn" @save="save(item, 'isbn')" save-text="保存" cancel-text="取消">
+                <v-edit-dialog large :return-value.sync="item.isbn" @save="save(item, 'isbn')" save-text="保存"
+                               cancel-text="取消">
                     {{ item.isbn }}
                     <template v-slot:input>
                         <div class="mt-4 text-h6">修改字段</div>
@@ -234,6 +240,7 @@ export default {
         snackColor: "",
         snackText: "",
 
+        getdup: false,
         books_selected: [],
         tag_input: null,
         search: "",
@@ -292,6 +299,11 @@ export default {
             if (this.search != undefined) {
                 data.append("search", this.search);
             }
+
+            if (this.getdup) {
+                data.append("dup", "true");
+            }
+
             this.$backend("/admin/book/list?" + data.toString())
                 .then((rsp) => {
                     if (rsp.err != "ok") {
