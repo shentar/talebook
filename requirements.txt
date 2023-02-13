@@ -7,5 +7,5 @@ bs4
 
 # build-in support for MYSQL
 pymysql
-pypdf2
+pypdf2==2.4.2
 pyyaml

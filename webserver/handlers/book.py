@@ -702,7 +702,8 @@ class BookRead(BaseHandler):
                 with open(path, "rb") as f:
                     pc = PdfCopyer()
                     pc(f, book["title"]).write(BookStream(self))
-            except:
+            except Exception as e:
+                logging.warning("some pdf error: %r" % e)
                 with open(path, "rb") as f:
                     self.write(f.read())
             return

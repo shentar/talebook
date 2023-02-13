@@ -195,7 +195,7 @@ class PdfCopyer:
         count = pdf_reader.numPages
         for i in range(count):
             page = pdf_reader.getPage(i)
-            self.page_labels[page.indirectRef.idnum] = i
+            self.page_labels[page.indirect_ref.idnum] = i
             pdf_writer.addPage(page)
 
         outlines = pdf_reader.getOutlines()
