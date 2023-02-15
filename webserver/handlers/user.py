@@ -102,6 +102,7 @@ class UserUpdate(BaseHandler):
             self.add_msg("success", _("Settings saved."))
             return {"err": "ok"}
         except:
+            self.session.rollback()
             return {"err": "db.error", "msg": _(u"数据库操作异常，请重试")}
 
 
@@ -111,7 +112,11 @@ class SignUp(BaseHandler):
         if not user or code != user.get_active_code():
             raise web.HTTPError(403, log_message=_(u"激活码无效"))
         user.active = True
-        user.save()
+        try:
+            user.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
         return self.redirect("/active/success")
 
     def send_active_email(self, user):
@@ -170,7 +175,7 @@ class SignUp(BaseHandler):
             user.save()
         except:
             import traceback
-
+            self.session.rollback()
             logging.error(traceback.format_exc())
             return {"err": "db.error", "msg": _(u"系统异常，请重试或更换注册信息")}
         self.send_active_email(user)
@@ -259,6 +264,7 @@ class UserReset(BaseHandler):
             self.add_msg("success", _("你刚刚重置了密码"))
             return {"err": "ok"}
         except:
+            self.session.rollback()
             return {"err": "db.error", "msg": _(u"系统繁忙")}
 
 
@@ -306,7 +312,11 @@ class UserMessages(BaseHandler):
 
         msg.unread = False
         msg.update_time = datetime.datetime.now()
-        msg.save()
+        try:
+            msg.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
         return {"err": "ok"}
 
 
@@ -421,9 +431,8 @@ class UserInfo(BaseHandler):
                 user.access_time = datetime.datetime.now()
                 user.save()
             except Exception as e:
-                logging.warning("some err: %r" % e)
                 self.session.rollback()
-                self.session.remove()
+                logging.warning("some err: %r" % e)
 
         detail = self.get_argument("detail", "")
         rsp = {
@@ -462,7 +471,11 @@ class ClearUserHis(BaseHandler):
 
         if user.extra and action and action in user.extra:
             del user.extra[action]
-            user.save()
+            try:
+                user.save()
+            except Exception as e:
+                self.session.rollback()
+                logging.warning("some err: %r" % e)
 
         return {
             "err": "ok",

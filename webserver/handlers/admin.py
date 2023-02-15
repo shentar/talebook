@@ -116,7 +116,11 @@ class AdminUsers(BaseHandler):
             return {"err": "params.permission.invalid", "msg": _(u"权限参数不对")}
         if p:
             user.set_permission(p)
-        user.save()
+        try:
+            user.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
         return {"err": "ok"}
 
 
@@ -330,6 +334,7 @@ class AdminInstall(BaseHandler):
         try:
             user.save()
         except:
+            self.session.rollback()
             logging.error(traceback.format_exc())
             return {"err": "db.error", "msg": _(u"系统异常，请重试或更换注册信息")}
 

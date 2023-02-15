@@ -241,12 +241,20 @@ class BaseHandler(web.RequestHandler):
         self.set_secure_cookie("lt", str(int(time.time())))
         user.access_time = datetime.datetime.now()
         user.extra["login_ip"] = self.request.remote_ip
-        user.save()
+        try:
+            user.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
 
     def add_msg(self, status, msg):
         m = Message(self.user_id(), status, msg)
         if m.reader_id:
-            m.save()
+            try:
+                m.save()
+            except Exception as e:
+                self.session.rollback()
+                logging.warning("some err: %r" % e)
 
     def pop_messages(self):
         if not self.current_user:
@@ -273,7 +281,11 @@ class BaseHandler(web.RequestHandler):
         extra[action] = history
         user = self.current_user
         user.extra.update(extra)
-        user.save()
+        try:
+            user.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
 
     def del_user_history(self, action, book):
         book_id = int(book)
@@ -290,7 +302,11 @@ class BaseHandler(web.RequestHandler):
         extra[action] = history
         user = self.current_user
         user.extra.update(extra)
-        user.save()
+        try:
+            user.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
 
     def last_modified(self, updated):
         """
@@ -453,7 +469,11 @@ class BaseHandler(web.RequestHandler):
             ipdownloads.ip = self.request.remote_ip + ""
             ipdownloads.starttime = datetime.datetime.now()
             ipdownloads.dcount = 1
-            ipdownloads.save()
+            try:
+                ipdownloads.save()
+            except Exception as e:
+                self.session.rollback()
+                logging.warning("some err: %r" % e)
 
         interval = datetime.datetime.now() - ipdownloads.starttime
         if interval.seconds >= 24 * 3600:
@@ -464,7 +484,12 @@ class BaseHandler(web.RequestHandler):
                 raise web.HTTPError(400, reason=_(
                     u"由于服务器压力过载，每个IP地址一天最多下载/推送%d本书" % max_download_count))
             ipdownloads.dcount += 1
-        ipdownloads.save()
+
+        try:
+            ipdownloads.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
 
     def count_increase(self, book_id, **kwargs):
         g = kwargs.get("count_guest", 0)
@@ -479,7 +504,11 @@ class BaseHandler(web.RequestHandler):
         item.count_guest += g
         item.count_visit += v
         item.count_download += d
-        item.save()
+        try:
+            item.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
 
         for o in [{"key": "visit", "value": v}, {"key": "download", "value": d}]:
             if o["value"] > 0:
@@ -490,7 +519,11 @@ class BaseHandler(web.RequestHandler):
                     s = KeyValueStore()
                     s.key = o["key"]
                     s.value = "1"
-                s.save()
+                try:
+                    s.save()
+                except Exception as e:
+                    self.session.rollback()
+                    logging.warning("some err: %r" % e)
 
         return item.website
 

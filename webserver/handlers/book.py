@@ -163,7 +163,11 @@ class BookDetail(BaseHandler):
 
                 if item.website != douban_id:
                     item.website = douban_id
-                    item.save()
+                    try:
+                        item.save()
+                    except Exception as e:
+                        self.session.rollback()
+                        logging.warning("some err: %r" % e)
         except:
             pass
 
@@ -381,7 +385,11 @@ class BookRefer(BaseHandler):
 
         if item.website != douban_id:
             item.website = douban_id
-            item.save()
+            try:
+                item.save()
+            except Exception as e:
+                self.session.rollback()
+                logging.warning("some err: %r" % e)
 
 
 class BookEdit(BaseHandler):
@@ -633,7 +641,11 @@ class BookUpload(BaseHandler):
         item = Item()
         item.book_id = book_id
         item.collector_id = self.user_id()
-        item.save()
+        try:
+            item.save()
+        except Exception as e:
+            self.session.rollback()
+            logging.warning("some err: %r" % e)
         return {"err": "ok", "book_id": book_id}
 
 
