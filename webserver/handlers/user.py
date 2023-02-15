@@ -409,12 +409,22 @@ class UserInfo(BaseHandler):
     def get(self):
         if CONF.get("installed", None) is False:
             return {"err": "not_installed"}
-
-        if self.current_user:
+        user = self.current_user
+        if user:
             # refresh the cookies.
+
             import time
-            self.set_secure_cookie("user_id", str(self.current_user.id))
+            self.set_secure_cookie("user_id", str(user.id))
             self.set_secure_cookie("lt", str(int(time.time())))
+            try:
+                # 刷新活跃时间
+                user.access_time = datetime.datetime.now()
+                user.save()
+            except Exception as e:
+                logging.warning("some err: %r" % e)
+                self.session.rollback()
+                self.session.remove()
+
         detail = self.get_argument("detail", "")
         rsp = {
             "err": "ok",
