@@ -5,6 +5,7 @@ import datetime
 import hashlib
 import logging
 import re
+import time
 from gettext import gettext as _
 
 import tornado.escape
@@ -420,15 +421,10 @@ class UserInfo(BaseHandler):
         if CONF.get("installed", None) is False:
             return {"err": "not_installed"}
         user = self.current_user
-        if user:
-            # refresh the cookies.
-
-            import time
-            self.set_secure_cookie("user_id", str(user.id))
-            self.set_secure_cookie("lt", str(int(time.time())))
+        # 超过30s，则刷新一次用户最新访问时间。
+        if user and user.access_time and user.access_time.timestamp() < time.time() - 30:
+            user.access_time = datetime.datetime.now()
             try:
-                # 刷新活跃时间
-                user.access_time = datetime.datetime.now()
                 user.save()
             except Exception as e:
                 self.session.rollback()

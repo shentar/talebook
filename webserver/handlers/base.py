@@ -117,7 +117,7 @@ class BaseHandler(web.RequestHandler):
 
     def invited_code_is_ok(self):
         t = self.get_secure_cookie("invited")
-        if t and int(float(t)) > int(time.time()) - 20 * 86400:
+        if t and int(float(t)) > int(time.time()) - 30 * 86400:
             # 登录成功后自动刷新一次。
             self.mark_invited()
             return True
@@ -209,9 +209,12 @@ class BaseHandler(web.RequestHandler):
 
     def user_id(self):
         login_time = self.get_secure_cookie("lt")
-        if not login_time or int(login_time) < int(time.time()) - 7 * 86400:
+        if not login_time or int(login_time) < int(time.time()) - 30 * 86400:
             return None
         uid = self.get_secure_cookie("user_id")
+        # 30天内登录，则自动延长登录时间。
+        self.set_secure_cookie("lt", str(int(time.time())))
+        self.set_secure_cookie("user_id", str(uid))
         return int(uid) if uid.isdigit() else None
 
     def get_current_user(self):
@@ -219,7 +222,7 @@ class BaseHandler(web.RequestHandler):
         if user_id:
             user_id = int(user_id)
         user = self.session.query(Reader).get(user_id) if user_id else None
-        logging.debug("Query User(%s) = %s" % (user_id, user))
+        # logging.debug("Query User(%s) = %s" % (user_id, user))
 
         admin_id = self.get_secure_cookie("admin_id")
         if admin_id:
