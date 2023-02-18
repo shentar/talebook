@@ -22,27 +22,28 @@ SCAN_DIR_PREFIX = "/data/"  # 限定扫描必须在/data/目录下，以防黑�
 
 
 class Scanner:
-    def __init__(self, calibre_db, session_db, user_id=None, base_handler=None):
+    def __init__(self, calibre_db, ScopedSession, user_id=None, base_handler=None):
         self.base_handler = base_handler
         self.db = calibre_db
-        self.session = session_db
         self.user_id = user_id
+        self.func_new_session = ScopedSession
+        self.curret_thread = threading.get_ident()
+        self.bind_new_session()
+
+    def bind_new_session(self):
+        # NOTE 起线程后台运行后，如果不开新的session，会出现session对象的绑定错误
+        self.session = self.func_new_session()
 
     def allow_backgrounds(self):
         """for unittest control"""
-        # FIXME 起线程后台运行后，会出现session对象的绑定错误。暂时没排查到原因
-        return False
-
-    def resume_last_scan(self):
-        # TODO
-        return False
+        return True
 
     def save_or_rollback(self, row):
         try:
             row.save()
             self.session.commit()
             bid = "[ book-id=%s ]" % row.book_id
-            logging.error("update: status=%-5s, path=%s %s", row.status, row.path, bid if row.book_id > 0 else "")
+            logging.info("update: status=%-5s, path=%s %s", row.status, row.path, bid if row.book_id > 0 else "")
             return True
         except Exception as err:
             logging.error(traceback.format_exc())
@@ -51,8 +52,20 @@ class Scanner:
             return False
 
     def run_scan(self, path_dir):
-        if self.resume_last_scan():
-            return 1
+        if not self.allow_backgrounds():
+            self.do_scan(path_dir)
+        else:
+            logging.info("run into background thread")
+            t = threading.Thread(name="do_scan", target=self.do_scan, args=(path_dir,))
+            t.setDaemon(True)
+            t.start()
+        return 1
+
+    def do_scan(self, path_dir):
+        from calibre.ebooks.metadata.meta import get_metadata
+
+        if threading.get_ident() != self.curret_thread:
+            self.bind_new_session()
 
         # 生成任务（粗略扫描），前端可以调用API查询进展
         tasks = []
@@ -64,20 +77,9 @@ class Scanner:
 
                 fmt = fpath.split(".")[-1].lower()
                 if fmt not in SCAN_EXT:
-                    logging.debug("bad format: [%s] %s", fmt, fpath)
+                    # logging.debug("bad format: [%s] %s", fmt, fpath)
                     continue
                 tasks.append((fname, fpath, fmt))
-
-        if not self.allow_backgrounds():
-            self.do_scan(tasks)
-        else:
-            t = threading.Thread(name="do_scan", target=self.do_scan, args=(tasks,))
-            t.setDaemon(True)
-            t.start()
-        return len(tasks)
-
-    def do_scan(self, tasks):
-        from calibre.ebooks.metadata.meta import get_metadata
 
         # 生成任务ID
         scan_id = int(time.time())
@@ -95,7 +97,7 @@ class Scanner:
             md5 = hashlib.md5(fname.encode("UTF-8")).hexdigest()
             hash = "fstat:%s/%s" % (stat.st_size, md5)
             if hash in inserted_hash:
-                logging.warn("maybe have same book, skip: %s", fpath)
+                logging.warning("maybe have same book, skip: %s", fpath)
                 continue
 
             row = ScanFile(fpath, hash, scan_id)
@@ -186,6 +188,9 @@ class Scanner:
     def do_import(self, hashlist):
         from calibre.ebooks.metadata.meta import get_metadata
 
+        if threading.get_ident() != self.curret_thread:
+            self.bind_new_session()
+
         # 生成任务ID
         import_id = int(time.time())
 
@@ -227,14 +232,14 @@ class Scanner:
     def import_status(self):
         import_id = self.session.query(sqlalchemy.func.max(ScanFile.import_id)).scalar()
         if import_id is None:
-            return (0, {})
+            return (0, {ScanFile.READY: 0})
         query = self.session.query(ScanFile.status).filter(ScanFile.import_id == import_id)
         return (import_id, self.count(query))
 
     def scan_status(self):
         scan_id = self.session.query(sqlalchemy.func.max(ScanFile.scan_id)).scalar()
         if scan_id is None:
-            return (0, {})
+            return (0, {ScanFile.NEW: 0})
         query = self.session.query(ScanFile.status).filter(ScanFile.scan_id == scan_id)
         return (scan_id, self.count(query))
 
@@ -262,8 +267,8 @@ class ScanList(BaseHandler):
         if not self.admin_user:
             return {"err": "permission.not_admin", "msg": _(u"当前用户非管理员")}
 
-        num = max(10, int(self.get_argument("num", 20)))
-        page = max(0, int(self.get_argument("page", 1)) - 1)
+        num = max(10, int(self.get_argument("num", "20")))
+        page = max(0, int(self.get_argument("page", "1")) - 1)
         sort = self.get_argument("sort", "access_time")
         desc = self.get_argument("desc", "desc")
         logging.debug("num=%d, page=%d, sort=%s, desc=%s" % (num, page, sort, desc))
@@ -314,7 +319,7 @@ class ScanRun(BaseHandler):
         path = CONF["scan_upload_path"]
         if not path.startswith(SCAN_DIR_PREFIX):
             return {"err": "params.error", "msg": _(u"参数错误")}
-        m = Scanner(self.db, self.session)
+        m = Scanner(self.db, self.settings["ScopedSession"])
         total = m.run_scan(path)
         if total == 0:
             return {"err": "empty", "msg": _("目录中没有找到符合要求的书籍文件！")}
@@ -337,7 +342,7 @@ class ScanDelete(BaseHandler):
         for record in records:
             delete_files.append(record.path)
 
-        m = Scanner(self.db, self.session)
+        m = Scanner(self.db, self.settings["ScopedSession"])
 
         count = m.delete(hashlist)
 
@@ -352,7 +357,7 @@ class ScanStatus(BaseHandler):
     @js
     @is_admin
     def get(self):
-        m = Scanner(self.db, self.session)
+        m = Scanner(self.db, self.settings["ScopedSession"])
         status = m.scan_status()[1]
         return {"err": "ok", "msg": _(u"成功"), "status": status}
 
@@ -368,7 +373,8 @@ class ImportRun(BaseHandler):
         if hashlist == "all":
             hashlist = None
 
-        m = Scanner(self.db, self.session, user_id=self.user_id(), base_handler=self)
+        m = Scanner(self.db, self.settings["ScopedSession"],
+                    user_id=self.user_id(), base_handler=self)
         total = m.run_import(hashlist)
         if total == 0:
             return {"err": "empty", "msg": _("没有等待导入书库的书籍！")}
@@ -379,7 +385,7 @@ class ImportStatus(BaseHandler):
     @js
     @is_admin
     def get(self):
-        m = Scanner(self.db, self.session)
+        m = Scanner(self.db, self.settings["ScopedSession"])
         status = m.import_status()[1]
         return {"err": "ok", "msg": _(u"成功"), "status": status}
 

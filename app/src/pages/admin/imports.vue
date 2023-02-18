@@ -29,7 +29,7 @@
             </template>
         </v-card-actions>
         <v-card-text>
-            <div v-if="selected.length == 0">请勾选需要处理的文件</div>
+            <div v-if="selected.length === 0">请勾选需要处理的文件</div>
             <div v-else>共选择了{{ selected.length }}个</div>
         </v-card-text>
         <v-data-table
@@ -48,14 +48,14 @@
             :items-per-page="100"
             :footer-props="{ 'items-per-page-options': [10, 50, 100] }">
             <template v-slot:item.status="{ item }">
-                <v-chip small v-if="item.status == 'ready'" class="success">可导入</v-chip>
-                <v-chip small v-else-if="item.status == 'exist'" class="lighten-4">已存在</v-chip>
-                <v-chip small v-else-if="item.status == 'imported'" class="primary">导入成功</v-chip>
-                <v-chip small v-else-if="item.status == 'new'" class="grey">待扫描</v-chip>
+                <v-chip small v-if="item.status === 'ready'" class="success">可导入</v-chip>
+                <v-chip small v-else-if="item.status === 'exist'" class="lighten-4">已存在</v-chip>
+                <v-chip small v-else-if="item.status === 'imported'" class="primary">导入成功</v-chip>
+                <v-chip small v-else-if="item.status === 'new'" class="grey">待扫描</v-chip>
                 <v-chip small v-else class="info">{{ item.status }}</v-chip>
             </template>
             <template v-slot:item.title="{ item }">
-                书名：<span v-if="item.book_id == 0"> {{ item.title }} </span>
+                书名：<span v-if="item.book_id === 0"> {{ item.title }} </span>
                 <a v-else target="_blank" :href="`/book/${item.book_id}`">{{ item.title }}</a> <br/>
                 作者：{{ item.author }}
             </template>
@@ -121,43 +121,37 @@ export default {
             if (itemsPerPage !== undefined) {
                 data.append("num", itemsPerPage);
             }
-            this.$backend("/admin/scan/list?" + data.toString())
-                .then((rsp) => {
-                    if (rsp.err !== "ok") {
-                        this.items = [];
-                        this.total = 0;
-                        alert(rsp.msg);
-                        return false;
-                    }
-                    this.items = rsp.items;
-                    this.total = rsp.total;
-                    this.scan_dir = rsp.scan_dir;
-                })
-                .finally(() => {
-                    this.loading = false;
-                });
+            this.$backend("/admin/scan/list?" + data.toString()).then((rsp) => {
+                if (rsp.err !== "ok") {
+                    this.items = [];
+                    this.total = 0;
+                    alert(rsp.msg);
+                    return false;
+                }
+                this.items = rsp.items;
+                this.total = rsp.total;
+                this.scan_dir = rsp.scan_dir;
+            }).finally(() => {
+                this.loading = false;
+            });
         },
         loop_check_status(url, callback) {
-            this.loading = true;
-            this.$backend(url)
-                .then((rsp) => {
-                    if (rsp.err !== "ok") {
-                        this.$alert("error", rsp.msg);
-                        this.loading = false
-                        return;
-                    }
-                    if (callback(rsp)) {
-                        setTimeout(() => {
-                            this.loop_check_status(url, callback);
-                        }, 1000);
-                    } else {
-                        this.getDataFromApi();
-                        this.$alert("info", "处理完毕！");
-                    }
-                })
-                .finally(() => {
+            this.$backend(url).then((rsp) => {
+                if (rsp.err !== "ok") {
                     this.loading = false;
-                });
+                    this.$alert("error", rsp.msg);
+                    return;
+                }
+                if (callback(rsp)) {
+                    setTimeout(() => {
+                        this.loop_check_status(url, callback)
+                    }, 1000);
+                } else {
+                    this.loading = false;
+                    this.getDataFromApi();
+                    this.$alert("info", "处理完毕！");
+                }
+            })
         },
         scan_books() {
             this.loading = true;
@@ -166,22 +160,17 @@ export default {
             }).then((rsp) => {
                 if (rsp.err !== "ok") {
                     this.$alert("error", rsp.msg, "/admin/imports");
-                    this.loading = false
+                    this.loading = false;
                     return false;
                 }
 
-                //this.check_scan_status();
                 this.loop_check_status("/admin/scan/status", (rsp) => {
                     this.scan = rsp.status;
-                    if (this.scan.new === 0) {
-                        this.loading = false;
-                        return false;
-                    }
-                    return true;
+                    return this.scan.new !== 0;
                 });
-            }).finally(() => {
-            });
+            })
         },
+
         import_books() {
             this.loading = true;
             this.$backend("/admin/import/run", {
@@ -191,24 +180,18 @@ export default {
                         return v.hash;
                     }),
                 }),
-            })
-                .then((rsp) => {
-                    if (rsp.err !== "ok") {
-                        this.$alert("error", rsp.msg);
-                    }
-                    //this.check_import_status();
-                    this.loop_check_status("/admin/import/status", (rsp) => {
-                        this.import = rsp.status;
-                        if (this.import.ready === 0) {
-                            this.loading = false;
-                            return false;
-                        }
-                        return true;
-                    });
-                })
-                .finally(() => {
+            }).then((rsp) => {
+                if (rsp.err !== "ok") {
+                    this.$alert("error", rsp.msg);
                     this.loading = false;
+                    return false;
+                }
+                //this.check_import_status();
+                this.loop_check_status("/admin/import/status", (rsp) => {
+                    this.import = rsp.status;
+                    return this.import.ready !== 0;
                 });
+            })
         },
         delete_record() {
             console.log(this.selected);
@@ -220,31 +203,27 @@ export default {
                         return v.hash;
                     }),
                 }),
-            })
-                .then((rsp) => {
-                    if (rsp.err !== "ok") {
-                        this.$alert("error", rsp.msg);
-                    }
-                    this.getDataFromApi();
-                })
-                .finally(() => {
-                    this.loading = false;
-                });
+            }).then((rsp) => {
+                if (rsp.err !== "ok") {
+                    this.$alert("error", rsp.msg);
+                }
+                this.getDataFromApi();
+            }).finally(() => {
+                this.loading = false;
+            });
         },
         mark_as(status) {
             this.loading = true;
             this.$backend("/admin/scan/mark", {
                 method: "POST",
                 body: JSON.stringify({hashlist: this.selected, status: status}),
-            })
-                .then((rsp) => {
-                    if (rsp.err !== "ok") {
-                        this.$alert("error", rsp.msg);
-                    }
-                })
-                .finally(() => {
-                    this.loading = false;
-                });
+            }).then((rsp) => {
+                if (rsp.err !== "ok") {
+                    this.$alert("error", rsp.msg);
+                }
+            }).finally(() => {
+                this.loading = false;
+            });
             this.items.map((v) => {
                 if (this.selected.indexOf(v.hash)) {
                     v.status = status;
