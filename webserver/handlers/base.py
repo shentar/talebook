@@ -214,7 +214,7 @@ class BaseHandler(web.RequestHandler):
         uid = self.get_secure_cookie("user_id")
         # 30天内登录，则自动延长登录时间。
         self.set_secure_cookie("lt", str(int(time.time())))
-        self.set_secure_cookie("user_id", str(uid))
+        self.set_secure_cookie("user_id", uid)
         return int(uid) if uid.isdigit() else None
 
     def get_current_user(self):
@@ -631,9 +631,10 @@ class BaseHandler(web.RequestHandler):
 
         relay = kwargs.get("relay", CONF["smtp_server"])
         username = kwargs.get("username", CONF["smtp_username"])
+        logging.info("try to send an msg: %s, email: %s" % (body, to))
         password = kwargs.get("password", CONF["smtp_password"])
         mail = self.create_mail(sender, to, subject, body, attachment_data, attachment_name)
-        sendmail(
+        ret = sendmail(
             mail,
             from_=sender,
             to=[to],
@@ -644,6 +645,8 @@ class BaseHandler(web.RequestHandler):
             username=username,
             password=password,
         )
+        if ret is not None:
+            logging.info("try to send an msg: %s, email: %s, ret: %s" % (body, to, str(ret)))
 
 
 class ListHandler(BaseHandler):

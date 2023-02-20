@@ -170,6 +170,7 @@ class SignUp(BaseHandler):
         user.active = False
         user.extra = {"kindle_email": ""}
         user.set_secure_password(password)
+        logging.info("create a new user: %s, %s, %s" % (user.name, user.username, str(user.create_time)))
         # 默认不允许上传。
         user.permission = "U"
         try:
@@ -273,6 +274,7 @@ class SignOut(BaseHandler):
     @js
     @auth
     def get(self):
+        logging.info("user logout: %s" % str(self.get_secure_cookie("user_id")))
         self.set_secure_cookie("user_id", "")
         self.set_secure_cookie("admin_id", "")
         return {"err": "ok", "msg": _(u"你已成功退出登录。")}
@@ -373,7 +375,7 @@ class UserInfo(BaseHandler):
             "extra": {},
         }
 
-        if not user or not user.create_time:
+        if not user or user.create_time is None:
             return d
 
         d.update(
