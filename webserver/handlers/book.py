@@ -221,16 +221,44 @@ class BookFavor(BaseHandler):
 
 
 class BookRefer(BaseHandler):
-    def has_proper_book(self, books, mi):
-        if not books or not mi.isbn or mi.isbn == baike.BAIKE_ISBN:
-            return False
+    def get_proper_book(self, api, books, mi):
+        if len(books) == 0:
+            return books
 
-        for b in books:
-            if mi.isbn == b.get("isbn13", "xxx"):
-                return True
+        has_isbn = True
+        if not mi.isbn \
+                or mi.isbn == baike.BAIKE_ISBN \
+                or str(mi.isbn).startswith('000000000'):
+            has_isbn = False
+
+        isbn_id = -1
+        ids = []
+        for i, b in enumerate(books):
+            if has_isbn and mi.isbn == b.get("isbn13", "xxx"):
+                isbn_id = i
             if mi.title == b.get("title") and mi.publisher == b.get("publisher"):
-                return True
-        return False
+                ids.append(i)
+
+        for i in ids:
+            b = books[i]
+            books = books[:i] + books[i + 1:]
+            books.insert(0, b)
+
+        if isbn_id == -1:
+            # 若有ISBN号，但是却没搜索出来，则精准查询一次ISBN
+            # 总是把最佳书籍放在第一位
+            if has_isbn:
+                book = api.get_book_by_isbn(mi.isbn)
+                logging.info("get book by isbn: %s" % book)
+                if book:
+                    books = list(books)
+                    books.insert(0, book)
+        else:
+            b = books[isbn_id]
+            books = books[:isbn_id] + books[isbn_id + 1:]
+            books.insert(0, b)
+
+        return books
 
     def plugin_search_books(self, mi):
         title = re.sub(u"[(（].*", "", mi.title)
@@ -248,13 +276,7 @@ class BookRefer(BaseHandler):
         except:
             logging.error(_(u"豆瓣接口查询 %s 失败" % title))
 
-        if not self.has_proper_book(books, mi):
-            # 若有ISBN号，但是却没搜索出来，则精准查询一次ISBN
-            # 总是把最佳书籍放在第一位
-            book = api.get_book_by_isbn(mi.isbn)
-            if book:
-                books = list(books)
-                books.insert(0, book)
+        books = self.get_proper_book(api, books, mi)
         books = [api._metadata(b) for b in books]
 
         # append baidu book
