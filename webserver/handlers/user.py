@@ -95,7 +95,7 @@ class UserUpdate(BaseHandler):
         ke = data.get("kindle_email", "").strip()
         if len(ke) > 0:
             if not check_email(ke):
-                return {"err": "params.email.invalid", "msg": _(u"Kindle地址无效")}
+                return {"err": "params.email.invalid", "msg": _(u"邮箱地址无效")}
             user.extra["kindle_email"] = ke
 
         try:

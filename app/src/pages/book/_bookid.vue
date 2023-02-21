@@ -3,9 +3,9 @@
         <v-col cols="12">
             <v-dialog v-model="dialog_kindle" persistent width="300">
                 <v-card>
-                    <v-card-title class="">推送到Kindle</v-card-title>
+                    <v-card-title class="">推送到邮箱</v-card-title>
                     <v-card-text>
-                        <p>填写Kindle收件人邮箱地址：</p>
+                        <p>填写接收书籍附件邮箱地址：</p>
                         <v-combobox
                             :items="email_items"
                             :rules="[check_email]"
@@ -16,7 +16,9 @@
                             auto-select-first
                             required
                         ></v-combobox>
-                        <small>* 请先将本站邮箱加入到Kindle发件人中:<br/>{{ kindle_sender }}</small>
+                        <small>*如果目标邮箱需要识别发件人地址，请先将本站邮箱加入到白名单:<br/>{{
+                                kindle_sender
+                            }}</small>
                     </v-card-text>
                     <v-card-actions>
                         <v-btn color="" text @click="dialog_kindle = false">取消</v-btn>

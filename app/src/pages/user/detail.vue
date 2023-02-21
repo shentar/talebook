@@ -68,7 +68,7 @@
             </v-col>
 
             <v-col cols=3>
-                <v-subheader class="pa-0 float-right">Kindle地址</v-subheader>
+                <v-subheader class="pa-0 float-right">接收推送书籍邮箱地址</v-subheader>
             </v-col>
             <v-col cols=9>
                 <v-text-field solo v-model="user.kindle_email" label="Kindle" type="text" autocomplete="new-email"
@@ -177,6 +177,10 @@ export default {
                 if (rsp.err !== 'ok') {
                     this.failmsg = rsp.msg;
                 } else {
+                    this.user.password0 = ""
+                    this.user.password1 = ""
+                    this.user.password2 = ""
+                    this.$store.commit("login", this.user)
                     this.$alert("success", "修改成功！")
                 }
             });
