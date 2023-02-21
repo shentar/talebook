@@ -1,6 +1,6 @@
 export const state = () => ({
     nav: true, loading: true, count: 0, user: {
-        is_admin: false, is_login: false, nickname: "", kindle_email: "", avatar: "",
+        is_admin: false, is_login: false, is_active: false, nickname: "", pems: "", kindle_email: "", avatar: "",
     }, alert: {
         to: "", msg: "", type: "", show: false,
     }, sys: {

@@ -3,7 +3,7 @@
         <v-btn bottom color="pink" dark fab fixed right @click="dialog = !dialog">
             <v-icon>mdi-upload</v-icon>
         </v-btn>
-        <v-dialog v-model="dialog" persistent transition="dialog-bottom-transition" width="300">
+        <v-dialog v-model="can_upload" persistent transition="dialog-bottom-transition" width="300">
             <v-card>
                 <v-toolbar flat dense dark color="primary">
                     上传书籍
@@ -60,7 +60,46 @@ export default {
                 });
         },
     },
+    computed: {
+        can_upload: function () {
+            if (!this.dialog) {
+                return false
+            }
 
+            const user = this.$store.state.user;
+            if (!user.is_login) {
+                this.dialog = false
+                this.$alert("info", "请登录后操作。")
+                return false
+            }
+
+            if (!user.is_active) {
+                this.dialog = false
+                this.$alert("info", "请激活账号后操作。")
+                return false
+            }
+
+            if (user.pems === undefined) {
+                this.dialog = false
+                this.$alert("info", "没有权限上传书籍，请联系管理员申请。")
+                return false
+            }
+
+            if (user.pems.indexOf("U") > -1) {
+                this.dialog = false
+                this.$alert("info", "没有权限上传书籍，请联系管理员申请。")
+                return false
+            }
+
+            if (user.pems.indexOf("u") < 0) {
+                this.dialog = false
+                this.$alert("info", "没有权限上传书籍，请联系管理员申请。")
+                return false
+            }
+
+            return true
+        },
+    },
 }
 </script>
 

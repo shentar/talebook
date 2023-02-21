@@ -373,6 +373,7 @@ class UserInfo(BaseHandler):
             "email": "",
             "kindle_email": "",
             "extra": {},
+            "pems": "",
         }
 
         if not user or user.create_time is None:
@@ -388,6 +389,7 @@ class UserInfo(BaseHandler):
                 "email": user.email,
                 "extra": {},
                 "create_time": user.create_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "pems": user.permission,
             }
         )
         if user.avatar:
@@ -396,7 +398,6 @@ class UserInfo(BaseHandler):
         if user.extra:
             d["kindle_email"] = user.extra.get("kindle_email", "")
             if detail:
-                d["pems"] = user.permission
                 for k, v in user.extra.items():
                     if not k.endswith("_history") or not v:
                         continue

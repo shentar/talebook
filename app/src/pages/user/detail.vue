@@ -20,7 +20,8 @@
                 <v-subheader class="pa-0 float-right">邮箱</v-subheader>
             </v-col>
             <v-col cols=9><p class="pt-3 mb-0">{{ user.email }}<a href='#' v-if="!user.is_active"
-                                                                  @click='send_active_email'>重新发送激活邮件</a></p></v-col>
+                                                                  @click='send_active_email'>重新发送激活邮件</a></p>
+            </v-col>
 
             <v-col cols=3>
                 <v-subheader class="pa-0 float-right">密码</v-subheader>
@@ -32,7 +33,8 @@
                 <div v-if="show_pass">
                     <v-text-field solo v-model="user.password0" label="当前密码" type="password"
                                   autocomplete="new-password0" :rules="[rules.pass]"></v-text-field>
-                    <v-text-field solo v-model="user.password1" label="新密码" type="password" autocomplete="new-password1"
+                    <v-text-field solo v-model="user.password1" label="新密码" type="password"
+                                  autocomplete="new-password1"
                                   :rules="[rules.pass]"></v-text-field>
                     <v-text-field solo v-model="user.password2" label="确认密码" type="password"
                                   autocomplete="new-password2" :rules="[valid]"></v-text-field>
@@ -122,7 +124,7 @@ export default {
         gen_perms() {
             return function (perms, allow) {
                 if (perms === undefined) {
-                    perms = "usedpr"
+                    perms = "USEDPR"
                 }
 
                 if (this.user.is_active === undefined || this.user.is_active === false) {
