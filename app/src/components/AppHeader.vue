@@ -45,7 +45,7 @@
                     </template>
 
                     <!-- 导航菜单 -->
-                    <v-list-item dense v-else :key="item.text" :to="item.href" :target="item.target">
+                    <v-list-item dense v-else :key="item.text" :href="item.href" :target="item.target">
                         <v-list-item-action class="mt-1 mb-1 mr-2" dense>
                             <v-icon class="pa-0 ma-0">{{ item.icon }}</v-icon>
                         </v-list-item-action>
@@ -291,7 +291,13 @@ export default {
             ];
             var sys_links = [
                 {heading: "系统"},
-                {icon: "mdi-history", text: "系统版本", href: "", count: this.sys.version},
+                {
+                    icon: "mdi-history",
+                    text: "系统版本",
+                    href: "//git.codefine.site:3000/Shentar/talebook/commit/" + this.sys.version,
+                    target: "_blank",
+                    count: this.sys.version
+                },
                 {icon: "mdi-human", text: "用户数量", href: "", count: this.sys.users},
                 {icon: "mdi-library-shelves", text: "书籍数量", href: "", count: this.sys.books},
                 {icon: "mdi-book-open-blank-variant", text: "阅读数量", href: "", count: this.sys.readcount},
