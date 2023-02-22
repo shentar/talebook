@@ -28,7 +28,7 @@
                 </v-card>
             </v-dialog>
 
-            <v-dialog v-model="dialog_download" persistent width="300">
+            <v-dialog v-model="can_download" persistent width="300">
                 <v-card>
                     <v-card-title color="primary" class="">下载书籍</v-card-title>
                     <v-card-text>
@@ -299,7 +299,7 @@
         <v-col cols="12" sm="6" md="4">
             <v-card outlined v-if="this.err === 'ok'">
                 <v-list>
-                    <v-list-item @click="dialog_download = !dialog_download">
+                    <v-list-item @click="dialog_download = true">
                         <v-list-item-avatar large color="primary">
                             <v-icon dark>get_app</v-icon>
                         </v-list-item-avatar>
@@ -368,6 +368,27 @@ export default {
         },
         get_hot_score: function () {
             return this.book.count_download + this.book.count_visit * 2
+        },
+        can_download: function () {
+            if (!this.dialog_download) {
+                return false
+            }
+
+            const user = this.$store.state.user
+            const sysinfo = this.$store.state.sys
+            if (user.is_login && user.is_active && user.pems.indexOf("D") > 0) {
+                this.$alert("error", "当前用户禁止下载书籍，请联系管理员申请权限。");
+                this.dialog_download = false
+                return false
+            }
+
+            if (!sysinfo.allow.download) {
+                this.$alert("error", "禁止游客或者未激活用户下载书籍，请联系管理申请权限。");
+                this.dialog_download = false
+                return false
+            }
+
+            return true
         }
     },
     data: () => ({
