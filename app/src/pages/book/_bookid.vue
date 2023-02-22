@@ -517,6 +517,17 @@ export default {
             return re.test(email) || "Email格式错误";
         },
         fav_book() {
+            const user = this.$store.state.user
+            if (!user.is_login) {
+                this.$alert("info", "请先登录后再收藏书籍！");
+                return
+            }
+
+            if (!user.is_active) {
+                this.$alert("info", "请先激活用户后再收藏书籍！");
+                return
+            }
+
             this.$backend("/book/" + this.book.id + "/fav", {
                 method: this.book.fav ? "DELETE" : "POST",
             }).then((rsp) => {
