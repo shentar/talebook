@@ -142,6 +142,11 @@ class SignUp(BaseHandler):
         email = self.get_argument("email", "").strip()
         nickname = self.get_argument("nickname", "").strip()
         username = self.get_argument("username", "").strip().lower()
+        if nickname.startswith("admin"):
+            return {"err": "params.invalid", "msg": _(u"NickName：%s 已经存在，请选用其它名字。" % nickname)}
+        if username.startswith("admin"):
+            return {"err": "params.invalid", "msg": _(u"UserName：%s 已经存在，请选用其它名字。" % username)}
+
         password = self.get_argument("password", "").strip()
         if not nickname or not username or not password:
             return {"err": "params.invalid", "msg": _(u"用户名或密码无效")}
@@ -155,10 +160,10 @@ class SignUp(BaseHandler):
 
         user = self.session.query(Reader).filter(Reader.username == username).first()
         if user:
-            return {"err": "params.username.exist", "msg": _(u"用户名已被使用")}
+            return {"err": "params.username.exist", "msg": _(u"用户名 %s 已被使用" % username)}
         user = self.session.query(Reader).filter(Reader.email == email).first()
         if user:
-            return {"err": "params.email.exist", "msg": _(u"邮箱地址已被使用")}
+            return {"err": "params.email.exist", "msg": _(u"邮箱地址 %s 已被使用" % email)}
         user = Reader()
         user.username = username
         user.name = nickname
