@@ -1,7 +1,7 @@
 <template>
     <v-row align="start">
         <v-col cols="12">
-            <v-dialog v-model="dialog_kindle" persistent width="300">
+            <v-dialog v-model="can_push" persistent width="300">
                 <v-card>
                     <v-card-title class="">推送到邮箱</v-card-title>
                     <v-card-text>
@@ -376,15 +376,45 @@ export default {
 
             const user = this.$store.state.user
             const sysinfo = this.$store.state.sys
-            if (user.is_login && user.is_active && user.pems.indexOf("D") > 0) {
-                this.$alert("error", "当前用户禁止下载书籍，请联系管理员申请权限。");
+            if (user.is_login && user.is_active) {
+                if (user.pems.indexOf("S") > 0) {
+                    this.$alert("info", "当前用户禁止下载书籍，请联系管理员申请权限。");
+                    this.dialog_download = false
+                    return false
+                } else {
+                    return true
+                }
+
+            }
+
+            if (!sysinfo.allow.download) {
+                this.$alert("info", "禁止游客或者未激活用户下载书籍，请联系管理申请权限。");
                 this.dialog_download = false
                 return false
             }
 
-            if (!sysinfo.allow.download) {
-                this.$alert("error", "禁止游客或者未激活用户下载书籍，请联系管理申请权限。");
-                this.dialog_download = false
+            return true
+        },
+        can_push: function () {
+            if (!this.dialog_kindle) {
+                return false
+            }
+
+            const user = this.$store.state.user
+            const sysinfo = this.$store.state.sys
+            if (user.is_login && user.is_active) {
+                if (user.pems.indexOf("P") > 0) {
+                    this.$alert("info", "当前用户禁止推送书籍，请联系管理员申请权限。");
+                    this.dialog_kindle = false
+                    return false
+                } else {
+                    return true
+                }
+            }
+
+            if (!sysinfo.allow.push) {
+                this.$alert("info", "禁止游客或者未激活用户推送书籍，请联系管理申请权限。");
+                this.dialog_kindle = false
                 return false
             }
 
