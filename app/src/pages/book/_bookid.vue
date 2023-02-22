@@ -377,8 +377,8 @@ export default {
             const user = this.$store.state.user
             const sysinfo = this.$store.state.sys
             if (user.is_login && user.is_active) {
-                if (user.pems.indexOf("S") > 0) {
-                    this.$alert("info", "当前用户禁止下载书籍，请联系管理员申请权限。");
+                if (user.pems.indexOf("S") > -1) {
+                    this.$alert("info", "当前用户禁止下载书籍，请联系管理员申请权限。", "/user/detail");
                     this.dialog_download = false
                     return false
                 } else {
@@ -388,7 +388,7 @@ export default {
             }
 
             if (!sysinfo.allow.download) {
-                this.$alert("info", "禁止游客或者未激活用户下载书籍，请联系管理申请权限。");
+                this.$alert("info", "禁止游客或者未激活用户下载书籍，请联系管理申请权限。", "/login?from=/book/" + this.book.id);
                 this.dialog_download = false
                 return false
             }
@@ -403,8 +403,8 @@ export default {
             const user = this.$store.state.user
             const sysinfo = this.$store.state.sys
             if (user.is_login && user.is_active) {
-                if (user.pems.indexOf("P") > 0) {
-                    this.$alert("info", "当前用户禁止推送书籍，请联系管理员申请权限。");
+                if (user.pems.indexOf("P") > -1) {
+                    this.$alert("info", "当前用户禁止推送书籍，请联系管理员申请权限。", "/user/detail");
                     this.dialog_kindle = false
                     return false
                 } else {
@@ -413,7 +413,7 @@ export default {
             }
 
             if (!sysinfo.allow.push) {
-                this.$alert("info", "禁止游客或者未激活用户推送书籍，请联系管理申请权限。");
+                this.$alert("info", "禁止游客或者未激活用户推送书籍，请联系管理申请权限。", "/login?from=/book/" + this.book.id);
                 this.dialog_kindle = false
                 return false
             }
@@ -485,7 +485,28 @@ export default {
                 }
             });
         },
+        can_read: function () {
+            const user = this.$store.state.user
+            const sysinfo = this.$store.state.sys
+            if (user.is_login && user.is_active) {
+                if (user.pems.indexOf("R") > -1) {
+                    this.$alert("info", "当前用户禁止在线阅读书籍，请联系管理员申请权限。", "/user/detail");
+                    return false
+                } else {
+                    return true
+                }
+            }
+
+            if (!sysinfo.allow.push) {
+                this.$alert("info", "禁止游客或者未激活用户在线阅读书籍，请注册或者激活用户。", "/login?from=/book/" + this.book.id);
+                return false
+            }
+        },
         online_read() {
+            if (!this.can_read()) {
+                return
+            }
+
             const userAgent = window.navigator.userAgent.toLowerCase();
             if (userAgent.indexOf("micromessenger") === -1) {
                 window.open("/read/" + this.book.id, "_blank");
@@ -549,12 +570,12 @@ export default {
         fav_book() {
             const user = this.$store.state.user
             if (!user.is_login) {
-                this.$alert("info", "请先登录后再收藏书籍！");
+                this.$alert("info", "请先登录后再收藏书籍！", "/login/?from=/book/" + this.book.id);
                 return
             }
 
             if (!user.is_active) {
-                this.$alert("info", "请先激活用户后再收藏书籍！");
+                this.$alert("info", "请先激活用户后再收藏书籍！", "/user/detail");
                 return
             }
 
