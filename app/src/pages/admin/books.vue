@@ -314,33 +314,35 @@ export default {
                     }
                     this.items = rsp.items;
                     this.total = rsp.total;
-                })
-                .finally(() => {
-                    this.loading = false;
-                });
+                }).finally(() => {
+                this.loading = false;
+            });
         },
         auto_fetch() {
             this.$alert("error", "功能正在开发中");
         },
         delete_book(book) {
+            const user = this.$store.state.user
+            if (user.pems.indexOf("D") > -1) {
+                this.$alert("info", "当前用户禁止删除书籍，请联系管理员。", "/user/detail");
+                return
+            }
             this.loading = true;
             this.$backend("/book/" + book.id + "/delete", {
                 method: "POST",
                 body: "",
-            })
-                .then((rsp) => {
-                    if (rsp.err != "ok") {
-                        this.$alert("error", rsp.msg);
-                    }
-                    this.snack = true;
-                    this.snackColor = "success";
-                    this.snackText = rsp.msg;
+            }).then((rsp) => {
+                if (rsp.err != "ok") {
+                    this.$alert("error", rsp.msg);
+                }
+                this.snack = true;
+                this.snackColor = "success";
+                this.snackText = rsp.msg;
 
-                    this.getDataFromApi();
-                })
-                .finally(() => {
-                    this.loading = false;
-                });
+                this.getDataFromApi();
+            }).finally(() => {
+                this.loading = false;
+            });
         },
         save(book, field) {
             var edit = {};

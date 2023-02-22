@@ -376,7 +376,11 @@ export default {
 
             const user = this.$store.state.user
             const sysinfo = this.$store.state.sys
-            if (user.is_login && user.is_active) {
+            if (user.is_login) {
+                if (!user.is_active) {
+                    this.$alert("info", "未激活用户禁止下载书籍，请登录注册邮箱激活账号。", "/user/detail");
+                    return false
+                }
                 if (user.pems.indexOf("S") > -1) {
                     this.$alert("info", "当前用户禁止下载书籍，请联系管理员申请权限。", "/user/detail");
                     this.dialog_download = false
@@ -388,7 +392,7 @@ export default {
             }
 
             if (!sysinfo.allow.download) {
-                this.$alert("info", "禁止游客或者未激活用户下载书籍，请联系管理申请权限。", "/login?from=/book/" + this.book.id);
+                this.$alert("info", "禁止游客下载书籍，请登录或者注册账号。", "/login?from=/book/" + this.book.id);
                 this.dialog_download = false
                 return false
             }
@@ -402,7 +406,11 @@ export default {
 
             const user = this.$store.state.user
             const sysinfo = this.$store.state.sys
-            if (user.is_login && user.is_active) {
+            if (user.is_login) {
+                if (!user.is_active) {
+                    this.$alert("info", "未激活用户禁止推送书籍，请登录注册邮箱激活账号。", "/user/detail");
+                    return false
+                }
                 if (user.pems.indexOf("P") > -1) {
                     this.$alert("info", "当前用户禁止推送书籍，请联系管理员申请权限。", "/user/detail");
                     this.dialog_kindle = false
@@ -413,7 +421,7 @@ export default {
             }
 
             if (!sysinfo.allow.push) {
-                this.$alert("info", "禁止游客或者未激活用户推送书籍，请联系管理申请权限。", "/login?from=/book/" + this.book.id);
+                this.$alert("info", "禁止游客推送书籍，请登录或者注册账号。", "/login?from=/book/" + this.book.id);
                 this.dialog_kindle = false
                 return false
             }
@@ -488,7 +496,11 @@ export default {
         can_read: function () {
             const user = this.$store.state.user
             const sysinfo = this.$store.state.sys
-            if (user.is_login && user.is_active) {
+            if (user.is_login) {
+                if (!user.is_active) {
+                    this.$alert("info", "未激活用户禁止在线阅读书籍，请登录注册邮箱激活账号。", "/user/detail");
+                    return false
+                }
                 if (user.pems.indexOf("R") > -1) {
                     this.$alert("info", "当前用户禁止在线阅读书籍，请联系管理员申请权限。", "/user/detail");
                     return false
@@ -498,7 +510,7 @@ export default {
             }
 
             if (!sysinfo.allow.push) {
-                this.$alert("info", "禁止游客或者未激活用户在线阅读书籍，请注册或者激活用户。", "/login?from=/book/" + this.book.id);
+                this.$alert("info", "禁止游客在线阅读书籍，请登录或者注册账号。", "/login?from=/book/" + this.book.id);
                 return false
             }
         },
@@ -549,6 +561,11 @@ export default {
             });
         },
         delete_book() {
+            const user = this.$store.state.user
+            if (user.pems.indexOf("D") > -1) {
+                this.$alert("info", "当前用户禁止删除书籍，请联系管理员。", "/user/detail");
+                return
+            }
             this.$backend("/book/" + this.book.id + "/delete", {
                 method: "POST",
             }).then((rsp) => {
