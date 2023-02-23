@@ -112,7 +112,7 @@ export default {
                         this.init()
                         this.$alert("success", "清理 \"" + name + "\" 成功")
                     } else {
-                        this.$alert("err", "清理 \"" + name + "\" 失败", rsp.to)
+                        this.$alert("err", "清理 \"" + name + "\" 失败：" + rsp.msg, rsp.to)
                     }
                 }
             )
