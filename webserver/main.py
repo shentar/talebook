@@ -135,7 +135,7 @@ def make_app():
     logging.info("updating configs done ...")
 
     # build sql session factory
-    engine = create_engine(auth_db_path, **CONF["db_engine_args"])
+    engine = create_engine(auth_db_path, **CONF["db_engine_args"], pool_size=20, max_overflow=0)
     ScopedSession = scoped_session(sessionmaker(bind=engine, autoflush=True, autocommit=False))
     models.bind_session(ScopedSession)
     init_social(models.Base, ScopedSession, CONF)
