@@ -61,7 +61,7 @@ export default {
             if (v.length < 8) {
                 return 'Min 8 characters';
             }
-            return v == this.password || "Password are not same."
+            return v === this.password || "Password are not same."
         },
         signup: function () {
             if (!this.$refs.form.validate()) {
@@ -76,15 +76,15 @@ export default {
             this.$backend('/user/sign_up', {
                 method: 'POST',
                 body: data,
-            })
-                .then(rsp => {
-                    if (rsp.err != 'ok') {
-                        this.failmsg = rsp.msg;
-                    } else {
-                        this.$store.commit("navbar", true);
-                        this.$router.push("/");
-                    }
-                });
+            }).then(rsp => {
+                if (rsp.err !== 'ok') {
+                    this.failmsg = rsp.msg;
+                } else {
+                    this.$store.commit("navbar", true);
+                    this.$router.push("/");
+                    this.$alert("info", "注册成功，请登录邮箱(" + this.email + ")激活账号。如未能收到邮件，请检查激活邮件是否被识别为垃圾邮件，其他问题请联系本站管理员。")
+                }
+            });
         }
     },
 }
