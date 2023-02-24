@@ -30,7 +30,7 @@ class SimpleBookFormatter:
         if not v:
             v = default_value
         if isinstance(v, datetime.datetime):
-            return v.strftime("%Y-%m-%d")
+            return v.strftime("%Y-%m-%d").zfill(10)
         return v
 
     def format(self):

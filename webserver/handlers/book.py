@@ -449,11 +449,13 @@ class BookEdit(BaseHandler):
                 mi.set(key, val)
 
         if data.get("pubdate", None):
-            content = douban.str2date(data["pubdate"])
-            if content is None:
-                return {"err": "params.pudate.invalid",
-                        "msg": _(u"出版日期参数错误，格式应为 2019-05-10或2019-05或2019年或2019")}
-            mi.set("pubdate", content)
+            book_date = data["pubdate"]
+            if book_date != "Unknown" and book_date != "unknown":
+                content = douban.str2date(data["pubdate"])
+                if content is None:
+                    return {"err": "params.pudate.invalid",
+                            "msg": _(u"出版日期参数错误，格式应为 2019-05-10或2019-05或2019年或2019")}
+                mi.set("pubdate", content)
 
         if "tags" in data and not data["tags"]:
             self.db.set_tags(bid, [])
