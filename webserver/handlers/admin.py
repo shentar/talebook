@@ -17,6 +17,7 @@ import tornado
 from webserver import loader
 from webserver.handlers.base import BaseHandler, auth, js, is_admin
 from webserver.models import Reader
+from webserver.plugins.meta import baike, douban
 from webserver.utils import SimpleBookFormatter, check_email
 
 CONF = loader.get_settings()
@@ -451,8 +452,8 @@ class AdminBookList(BaseHandler):
         if not self.admin_user:
             return {"err": "permission.not_admin", "msg": _(u"当前用户非管理员")}
 
-        num = max(10, int(self.get_argument("num", 20)))
-        page = max(0, int(self.get_argument("page", 1)) - 1)
+        num = max(10, int(self.get_argument("num", "20")))
+        page = max(0, int(self.get_argument("page", "1")) - 1)
         start = page * num
         end = start + num
 
@@ -510,6 +511,59 @@ class AdminBookList(BaseHandler):
                 books.sort(key=lambda x: x["id"], reverse=desc)
 
         return {"err": "ok", "items": books, "total": total}
+
+    @js
+    @is_admin
+    def post(self):
+        req = tornado.escape.json_decode(self.request.body)
+        book_list = req["book_list"]
+        if not book_list:
+            return {"err": "params.error", "msg": _(u"参数错误")}
+
+        for id in book_list:
+            book_id = int(id)
+            mi = self.db.get_metadata(id, index_is_id=True)
+            if not mi:
+                continue
+
+            has_isbn = True
+            if not mi.isbn \
+                    or mi.isbn == baike.BAIKE_ISBN \
+                    or str(mi.isbn).startswith('000000000'):
+                has_isbn = False
+            if has_isbn:
+                api = douban.DoubanBookApi(
+                    CONF["douban_apikey"],
+                    CONF["douban_baseurl"],
+                    copy_image=False,
+                    manual_select=False,
+                    maxCount=CONF["douban_max_count"],
+                )
+                book = api.get_book_by_isbn(mi.isbn)
+                if book:
+                    refer_mi = api._metadata(book)
+                    refer_mi.cover_data = None
+                    self.update_book_meta(book_id, mi, refer_mi)
+                    self.db.set_metadata(book_id, mi)
+                    self.set_website(book_id, refer_mi.provider_key, refer_mi.provider_value)
+                    logging.info("update one book by isbn: %s" % mi)
+                    continue
+
+            ref_books = self.plugin_search_books(mi)
+            if not ref_books:
+                continue
+
+            refer_book = ref_books[0]
+            refer_mi = self.plugin_get_book_meta(refer_book.provider_key, refer_book.provider_value, mi)
+            if not refer_mi:
+                continue
+            refer_mi.cover_data = None
+            self.update_book_meta(book_id, mi, refer_mi)
+            self.db.set_metadata(book_id, mi)
+            self.set_website(book_id, refer_book.provider_key, refer_book.provider_value)
+            logging.info("updated one book by search title: %s" % mi)
+
+        return {"err": "ok", "msg": _(u"批量获取书籍信息完成！")}
 
 
 def routes():

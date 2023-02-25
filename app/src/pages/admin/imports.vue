@@ -194,7 +194,6 @@ export default {
             })
         },
         delete_record() {
-            console.log(this.selected);
             this.loading = true;
             this.$backend("/admin/scan/delete", {
                 method: "POST",

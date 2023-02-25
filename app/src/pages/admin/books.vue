@@ -38,13 +38,12 @@
             :server-items-length="total"
             :loading="loading"
             :items-per-page="100"
-            :footer-props="{ 'items-per-page-options': [10, 50, 100] }"
-        >
+            :footer-props="{ 'items-per-page-options': [10, 50, 100] }">
             <template v-slot:item.status="{ item }">
-                <v-chip small v-if="item.status == 'ready'" class="success">可导入</v-chip>
-                <v-chip small v-else-if="item.status == 'exist'" class="lighten-4">已存在</v-chip>
-                <v-chip small v-else-if="item.status == 'imported'" class="primary">导入成功</v-chip>
-                <v-chip small v-else-if="item.status == 'new'" class="grey">待扫描</v-chip>
+                <v-chip small v-if="item.status === 'ready'" class="success">可导入</v-chip>
+                <v-chip small v-else-if="item.status === 'exist'" class="lighten-4">已存在</v-chip>
+                <v-chip small v-else-if="item.status === 'imported'" class="primary">导入成功</v-chip>
+                <v-chip small v-else-if="item.status === 'new'" class="grey">待扫描</v-chip>
                 <v-chip small v-else class="info">{{ item.status }}</v-chip>
             </template>
             <template v-slot:item.id="{ item }">
@@ -131,8 +130,7 @@
                     :return-value.sync="item.publisher"
                     @save="save(item, 'publisher')"
                     save-text="保存"
-                    cancel-text="取消"
-                >
+                    cancel-text="取消">
                     {{ item.publisher }}
                     <template v-slot:input>
                         <div class="mt-4 text-h6">修改字段</div>
@@ -156,8 +154,7 @@
                             :search-input.sync="tag_input"
                             hide-selected
                             multiple
-                            small-chips
-                        >
+                            small-chips>
                             <template v-slot:no-data>
                                 <v-list-item>
                                     <span v-if="!tag_input">请输入新的标签名称</span>
@@ -279,24 +276,23 @@ export default {
     },
     methods: {
         getDataFromApi() {
-            console.log(this.options);
             this.loading = true;
             const {sortBy, sortDesc, page, itemsPerPage} = this.options;
 
             var data = new URLSearchParams();
-            if (page != undefined) {
+            if (page !== undefined) {
                 data.append("page", page);
             }
-            if (sortBy != undefined) {
+            if (sortBy !== undefined) {
                 data.append("sort", sortBy);
             }
-            if (sortDesc != undefined) {
+            if (sortDesc !== undefined) {
                 data.append("desc", sortDesc);
             }
-            if (itemsPerPage != undefined) {
+            if (itemsPerPage !== undefined) {
                 data.append("num", itemsPerPage);
             }
-            if (this.search != undefined) {
+            if (this.search !== undefined) {
                 data.append("search", this.search);
             }
 
@@ -306,7 +302,7 @@ export default {
 
             this.$backend("/admin/book/list?" + data.toString())
                 .then((rsp) => {
-                    if (rsp.err != "ok") {
+                    if (rsp.err !== "ok") {
                         this.items = [];
                         this.total = 0;
                         this.$alert("error", rsp.msg);
@@ -319,7 +315,24 @@ export default {
             });
         },
         auto_fetch() {
-            this.$alert("error", "功能正在开发中");
+            this.loading = true;
+            this.$backend("/admin/book/list", {
+                method: "POST",
+                body: JSON.stringify({
+                    book_list: this.books_selected.map((v) => {
+                        return v.id;
+                    }),
+                }),
+            }).then((rsp) => {
+                if (rsp.err !== "ok") {
+                    this.$alert("error", rsp.msg);
+                } else {
+                    this.$alert("success", "批量更新完毕！")
+                }
+                this.getDataFromApi();
+            }).finally(() => {
+                this.loading = false;
+            });
         },
         delete_book(book) {
             const user = this.$store.state.user
@@ -332,7 +345,7 @@ export default {
                 method: "POST",
                 body: "",
             }).then((rsp) => {
-                if (rsp.err != "ok") {
+                if (rsp.err !== "ok") {
                     this.$alert("error", rsp.msg);
                 }
                 this.snack = true;
@@ -354,7 +367,7 @@ export default {
                 method: "POST",
                 body: JSON.stringify(edit),
             }).then((rsp) => {
-                if (rsp.err == "ok") {
+                if (rsp.err === "ok") {
                     this.snack = true;
                     this.snackColor = "success";
                     this.snackText = rsp.msg;

@@ -221,97 +221,6 @@ class BookFavor(BaseHandler):
 
 
 class BookRefer(BaseHandler):
-    def get_proper_book(self, api, books, mi):
-        if len(books) == 0:
-            return books
-
-        has_isbn = True
-        if not mi.isbn \
-                or mi.isbn == baike.BAIKE_ISBN \
-                or str(mi.isbn).startswith('000000000'):
-            has_isbn = False
-
-        isbn_id = -1
-        ids = []
-        for i, b in enumerate(books):
-            if has_isbn and mi.isbn == b.get("isbn13", "xxx"):
-                isbn_id = i
-            if mi.title == b.get("title") and mi.publisher == b.get("publisher"):
-                ids.append(i)
-
-        for i in ids:
-            b = books[i]
-            books = books[:i] + books[i + 1:]
-            books.insert(0, b)
-
-        if isbn_id == -1:
-            # 若有ISBN号，但是却没搜索出来，则精准查询一次ISBN
-            # 总是把最佳书籍放在第一位
-            if has_isbn:
-                book = api.get_book_by_isbn(mi.isbn)
-                logging.info("get book by isbn: %s" % book)
-                if book:
-                    books = list(books)
-                    books.insert(0, book)
-        else:
-            b = books[isbn_id]
-            books = books[:isbn_id] + books[isbn_id + 1:]
-            books.insert(0, b)
-
-        return books
-
-    def plugin_search_books(self, mi):
-        title = re.sub(u"[(（].*", "", mi.title)
-        api = douban.DoubanBookApi(
-            CONF["douban_apikey"],
-            CONF["douban_baseurl"],
-            copy_image=False,
-            manual_select=False,
-            maxCount=CONF["douban_max_count"],
-        )
-        # first, search title
-        books = []
-        try:
-            books = api.search_books(title) or []
-        except:
-            logging.error(_(u"豆瓣接口查询 %s 失败" % title))
-
-        books = self.get_proper_book(api, books, mi)
-        books = [api._metadata(b) for b in books]
-
-        # append baidu book
-        api = baike.BaiduBaikeApi(copy_image=False)
-        try:
-            book = api.get_book(title)
-        except:
-            return {"err": "httprequest.baidubaike.failed", "msg": _(u"百度百科查询失败")}
-        if book:
-            books.append(book)
-        return books
-
-    def plugin_get_book_meta(self, provider_key, provider_value, mi):
-        if provider_key == baike.KEY:
-            title = re.sub(u"[(（].*", "", mi.title)
-            api = baike.BaiduBaikeApi(copy_image=True)
-            try:
-                return api.get_book(title)
-            except:
-                return {"err": "httprequest.baidubaike.failed", "msg": _(u"百度百科查询失败")}
-
-        if provider_key == douban.KEY:
-            mi.douban_id = provider_value
-            api = douban.DoubanBookApi(
-                CONF["douban_apikey"],
-                CONF["douban_baseurl"],
-                copy_image=True,
-                maxCount=CONF["douban_max_count"],
-            )
-            try:
-                return api.get_book(mi)
-            except:
-                return {"err": "httprequest.douban.failed", "msg": _(u"豆瓣接口查询失败")}
-        return {"err": "params.provider_key.not_support", "msg": _(u"不支持该provider_key")}
-
     @js
     def get(self, id):
         if not self.current_user:
@@ -368,24 +277,16 @@ class BookRefer(BaseHandler):
             return {"err": "user.no_permission", "msg": _(u"无权限")}
 
         refer_mi = self.plugin_get_book_meta(provider_key, provider_value, mi)
+        if not refer_mi:
+            return {"err": "refer.query_failed", "msg": _(u"查询书籍引用失败。")}
+
         if only_cover == "yes":
             # just set cover
             mi.cover_data = refer_mi.cover_data
         else:
             if only_meta == "yes":
                 refer_mi.cover_data = None
-            if len(refer_mi.tags) + len(mi.tags) <= 2:
-                ts = []
-                for nn, tags in constants.BOOK_NAV:
-                    for tag in tags:
-                        if (tag in refer_mi.title or tag in refer_mi.comments or tag in refer_mi.authors) and \
-                                tag not in constants.ESCAPED_TAGS:
-                            ts.append(tag)
-                if len(ts) > 0:
-                    mi.tags += ts[:8]
-                    logging.info("tags are %s" % ','.join(mi.tags))
-                    self.db.set_tags(book_id, mi.tags)
-            mi.smart_update(refer_mi, replace_metadata=True)
+            self.update_book_meta(book_id, mi, refer_mi)
 
         self.db.set_metadata(book_id, mi)
 
@@ -394,24 +295,6 @@ class BookRefer(BaseHandler):
 
         return {"err": "ok"}
 
-    def set_website(self, book_id, provider_key, provider_value):
-        if provider_key != douban.KEY:
-            return
-
-        douban_id = provider_value
-        try:
-            item = self.session.query(Item).filter(Item.book_id == book_id).one()
-        except:
-            item = Item()
-            item.book_id = book_id
-
-        if item.website != douban_id:
-            item.website = douban_id
-            try:
-                item.save()
-            except Exception as e:
-                self.session.rollback()
-                logging.warning("some err: %r" % e)
 
 
 class BookEdit(BaseHandler):
