@@ -407,9 +407,21 @@ class BookDownload(BaseHandler):
             att = u'attachment; filename="%(id)d.%(fmt)s"' % book
 
         self.set_header("Content-Disposition", att.encode("UTF-8"))
-        self.set_header("Content-Type", "application/octet-stream")
-        with open(path, "rb") as f:
-            self.write(f.read())
+
+        if fmt == "pdf":
+            self.set_header("Content-Type", "application/pdf")
+            try:
+                with open(path, "rb") as f:
+                    pc = PdfCopyer()
+                    pc(f, book["title"]).write(BookStream(self))
+            except Exception as e:
+                logging.warning("some pdf error: %r" % e)
+                with open(path, "rb") as f:
+                    self.write(f.read())
+        else:
+            self.set_header("Content-Type", "application/octet-stream")
+            with open(path, "rb") as f:
+                self.write(f.read())
 
 
 class BookNav(ListHandler):
@@ -612,17 +624,21 @@ class BookRead(BaseHandler):
             self.user_history("read_history", book_id)
             self.count_increase(book_id, count_visit=1)
 
-            path = book["fmt_pdf"]
-            self.set_header("Content-Type", "application/pdf")
-            try:
-                with open(path, "rb") as f:
-                    pc = PdfCopyer()
-                    pc(f, book["title"]).write(BookStream(self))
-            except Exception as e:
-                logging.warning("some pdf error: %r" % e)
-                with open(path, "rb") as f:
-                    self.write(f.read())
-            return
+            pdf_url = urllib.parse.quote_plus(self.api_url + "/api/book/%(id)d.PDF" % book)
+            pdf_reader_url = CONF["PDF_VIEWER"] % {"pdf_url": pdf_url}
+            return self.redirect(pdf_reader_url)
+
+            # path = book["fmt_pdf"]
+            # self.set_header("Content-Type", "application/pdf")
+            # try:
+            #     with open(path, "rb") as f:
+            #         pc = PdfCopyer()
+            #         pc(f, book["title"]).write(BookStream(self))
+            # except Exception as e:
+            #     logging.warning("some pdf error: %r" % e)
+            #     with open(path, "rb") as f:
+            #         self.write(f.read())
+            # return
 
         raise web.HTTPError(404, reason=_(u"抱歉，在线阅读器暂不支持该格式的书籍"))
 
