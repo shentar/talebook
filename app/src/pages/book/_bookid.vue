@@ -361,9 +361,9 @@ export default {
         },
         db_link: function () {
             if (this.dbid !== undefined && this.dbid !== "") {
-                return "https://book.douban.com/subject/" + this.dbid
+                return "https://book.douban.com/subject/" + this.dbid;
             } else {
-                return undefined
+                return undefined;
             }
         },
         get_hot_score: function () {
@@ -371,11 +371,11 @@ export default {
         },
         can_download: function () {
             if (!this.dialog_download) {
-                return false
+                return false;
             }
 
-            const user = this.$store.state.user
-            const sysinfo = this.$store.state.sys
+            const user = this.$store.state.user;
+            const sysinfo = this.$store.state.sys;
             if (user.is_login) {
                 if (!user.is_active) {
                     this.$alert("info", "未激活用户禁止下载书籍，请登录注册邮箱激活账号。", "/user/detail");
@@ -383,47 +383,46 @@ export default {
                 }
                 if (user.pems.indexOf("S") > -1) {
                     this.$alert("info", "当前用户禁止下载书籍，请联系管理员申请权限。", "/user/detail");
-                    this.dialog_download = false
-                    return false
+                    this.dialog_download = false;
+                    return false;
                 } else {
-                    return true
+                    return true;
                 }
-
             }
 
             if (!sysinfo.allow.download) {
                 this.$alert("info", "禁止游客下载书籍，请登录或者注册账号。", "/login?from=/book/" + this.book.id);
-                this.dialog_download = false
-                return false
+                this.dialog_download = false;
+                return false;
             }
 
-            return true
+            return true;
         },
         can_push: function () {
             if (!this.dialog_kindle) {
-                return false
+                return false;
             }
 
-            const user = this.$store.state.user
-            const sysinfo = this.$store.state.sys
+            const user = this.$store.state.user;
+            const sysinfo = this.$store.state.sys;
             if (user.is_login) {
                 if (!user.is_active) {
                     this.$alert("info", "未激活用户禁止推送书籍，请登录注册邮箱激活账号。", "/user/detail");
-                    return false
+                    return false;
                 }
                 if (user.pems.indexOf("P") > -1) {
                     this.$alert("info", "当前用户禁止推送书籍，请联系管理员申请权限。", "/user/detail");
                     this.dialog_kindle = false
-                    return false
+                    return false;
                 } else {
-                    return true
+                    return true;
                 }
             }
 
             if (!sysinfo.allow.push) {
                 this.$alert("info", "禁止游客推送书籍，请登录或者注册账号。", "/login?from=/book/" + this.book.id);
-                this.dialog_kindle = false
-                return false
+                this.dialog_kindle = false;
+                return false;
             }
 
             return true
@@ -494,25 +493,27 @@ export default {
             });
         },
         can_read: function () {
-            const user = this.$store.state.user
-            const sysinfo = this.$store.state.sys
+            const user = this.$store.state.user;
+            const sysinfo = this.$store.state.sys;
             if (user.is_login) {
                 if (!user.is_active) {
                     this.$alert("info", "未激活用户禁止在线阅读书籍，请登录注册邮箱激活账号。", "/user/detail");
-                    return false
+                    return false;
                 }
                 if (user.pems.indexOf("R") > -1) {
                     this.$alert("info", "当前用户禁止在线阅读书籍，请联系管理员申请权限。", "/user/detail");
-                    return false
+                    return false;
                 } else {
-                    return true
+                    return true;
                 }
             }
 
-            if (!sysinfo.allow.push) {
+            if (!sysinfo.allow.read) {
                 this.$alert("info", "禁止游客在线阅读书籍，请登录或者注册账号。", "/login?from=/book/" + this.book.id);
-                return false
+                return false;
             }
+
+            return true;
         },
         online_read() {
             if (!this.can_read()) {
