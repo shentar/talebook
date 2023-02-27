@@ -327,7 +327,7 @@ export default {
                 if (rsp.err !== "ok") {
                     this.$alert("error", rsp.msg);
                 } else {
-                    this.$alert("success", "批量更新完毕！")
+                    this.$alert("success", rsp.msg);
                 }
                 this.getDataFromApi();
             }).finally(() => {

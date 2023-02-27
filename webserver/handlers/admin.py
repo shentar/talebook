@@ -8,6 +8,7 @@ import re
 import ssl
 import subprocess
 import tempfile
+import threading
 import traceback
 import uuid
 from gettext import gettext as _
@@ -515,55 +516,72 @@ class AdminBookList(BaseHandler):
     @js
     @is_admin
     def post(self):
+        logging.info("run into background thread")
         req = tornado.escape.json_decode(self.request.body)
         book_list = req["book_list"]
+        t = threading.Thread(name="do_scan", target=self.do_detect, args=(book_list, True,))
+        t.setDaemon(True)
+        t.start()
+        return {"err": "ok", "msg": _(u"扫描任务已经在后台运行，可以使用刷新按钮查看进度，请勿重复下发扫描任务！")}
+
+    def do_detect(self, book_list, background_task):
         if not book_list:
             return {"err": "params.error", "msg": _(u"参数错误")}
 
+        if background_task:
+            self.session = self.settings["ScopedSession"]()
+
+        api = douban.DoubanBookApi(
+            CONF["douban_apikey"],
+            CONF["douban_baseurl"],
+            copy_image=False,
+            manual_select=False,
+            maxCount=CONF["douban_max_count"],
+        )
+
         for id in book_list:
-            book_id = int(id)
-            mi = self.db.get_metadata(id, index_is_id=True)
-            if not mi:
+            try:
+                self.detect_one(id, api)
+            except Exception as e:
+                logging.info("some err when detect book: %d, err: %r" % (id, e))
                 continue
-
-            has_isbn = True
-            if not mi.isbn \
-                    or mi.isbn == baike.BAIKE_ISBN \
-                    or str(mi.isbn).startswith('000000000'):
-                has_isbn = False
-            if has_isbn:
-                api = douban.DoubanBookApi(
-                    CONF["douban_apikey"],
-                    CONF["douban_baseurl"],
-                    copy_image=False,
-                    manual_select=False,
-                    maxCount=CONF["douban_max_count"],
-                )
-                book = api.get_book_by_isbn(mi.isbn)
-                if book:
-                    refer_mi = api._metadata(book)
-                    refer_mi.cover_data = None
-                    self.update_book_meta(book_id, mi, refer_mi)
-                    self.db.set_metadata(book_id, mi)
-                    self.set_website(book_id, refer_mi.provider_key, refer_mi.provider_value)
-                    logging.info("update one book by isbn: %s" % mi)
-                    continue
-
-            ref_books = self.plugin_search_books(mi)
-            if not ref_books:
-                continue
-
-            refer_book = ref_books[0]
-            refer_mi = self.plugin_get_book_meta(refer_book.provider_key, refer_book.provider_value, mi)
-            if not refer_mi:
-                continue
-            refer_mi.cover_data = None
-            self.update_book_meta(book_id, mi, refer_mi)
-            self.db.set_metadata(book_id, mi)
-            self.set_website(book_id, refer_book.provider_key, refer_book.provider_value)
-            logging.info("updated one book by search title: %s" % mi)
 
         return {"err": "ok", "msg": _(u"批量获取书籍信息完成！")}
+
+    def detect_one(self, id, api):
+        book_id = int(id)
+        mi = self.db.get_metadata(id, index_is_id=True)
+        if not mi:
+            return
+        has_isbn = True
+        if not mi.isbn \
+                or mi.isbn == baike.BAIKE_ISBN \
+                or str(mi.isbn).startswith('000000000'):
+            has_isbn = False
+        if has_isbn:
+            book = api.get_book_by_isbn(mi.isbn)
+            if book:
+                refer_mi = api._metadata(book)
+                refer_mi.cover_data = None
+                self.update_book_meta(book_id, mi, refer_mi)
+                self.db.set_metadata(book_id, mi)
+                self.set_website(book_id, refer_mi.provider_key, refer_mi.provider_value)
+                logging.info("update one book by isbn: %s" % mi)
+                return
+
+        ref_books = self.plugin_search_books(mi)
+        if not ref_books:
+            return
+
+        refer_book = ref_books[0]
+        refer_mi = self.plugin_get_book_meta(refer_book.provider_key, refer_book.provider_value, mi)
+        if not refer_mi:
+            return
+        refer_mi.cover_data = None
+        self.update_book_meta(book_id, mi, refer_mi)
+        self.db.set_metadata(book_id, mi)
+        self.set_website(book_id, refer_book.provider_key, refer_book.provider_value)
+        logging.info("updated one book by search title: %s" % mi)
 
 
 def routes():
