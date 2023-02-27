@@ -15,7 +15,8 @@
                                       autocomplete="new-password2" :rules="[valid]"></v-text-field>
                         <v-text-field required prepend-icon="face" v-model="nickname" label="昵称" type="text"
                                       autocomplete="new-nickname" :rules="[rules.nick]"></v-text-field>
-                        <v-text-field required prepend-icon="email" v-model="email" label="Email" type="text"
+                        <v-text-field required prepend-icon="email" v-model="email" label="Email(用于接收激活链接)"
+                                      type="text"
                                       autocomplete="new-email" :rules="[rules.email]"></v-text-field>
                     </v-form>
                     <div align="center">

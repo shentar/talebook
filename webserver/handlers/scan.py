@@ -336,11 +336,19 @@ class ScanDelete(BaseHandler):
             return {"err": "params.error", "msg": _(u"参数错误")}
         if hashlist == "all":
             hashlist = None
+        delete_success = req["delete_success"]
+        delete_failed = req["delete_failed"]
+        logging.info("delete_success: {}, delete_failed: {}", delete_success, delete_failed)
 
         delete_files = []
         records = self.session.query(ScanFile).filter(ScanFile.hash.in_(hashlist))
         for record in records:
-            delete_files.append(record.path)
+            if record.status == ScanFile.IMPORTED and delete_success:
+                delete_files.append(record.path)
+                logging.info("try to delete one imported successfully file: %s" % record)
+            if record.status != ScanFile.IMPORTED and delete_failed:
+                delete_files.append(record.path)
+                logging.info("try to delete one imported failed file: %s" % record)
 
         m = Scanner(self.db, self.settings["ScopedSession"])
 

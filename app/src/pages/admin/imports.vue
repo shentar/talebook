@@ -22,12 +22,26 @@
                     <v-icon>mdi-import</v-icon>
                     导入书籍
                 </v-btn>
-                <v-btn :disabled="loading" outlined color="primary" @click="delete_record">
+                <v-btn :disabled="loading" outlined color="primary" @click="delete_dialog = !delete_dialog">
                     <v-icon>mdi-delete</v-icon>
                     删除
                 </v-btn>
             </template>
         </v-card-actions>
+        <v-dialog v-model="this.delete_dialog" persistent width="300">
+            <v-card>
+                <v-card-title class="">删除选中的记录及书籍源文件</v-card-title>
+                <v-card-text>
+                    <v-checkbox v-model="this.delete_imported_success" :label="`删除导入成功的书籍源文件`"></v-checkbox>
+                    <v-checkbox v-model="this.delete_imported_failed" :label="`删除导入失败的书籍源文件`"></v-checkbox>
+                </v-card-text>
+                <v-card-actions>
+                    <v-btn color="" text @click="delete_dialog = false">取消</v-btn>
+                    <v-spacer></v-spacer>
+                    <v-btn color="primary" text @click="delete_record">删除</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-card-text>
             <div v-if="selected.length === 0">请勾选需要处理的文件</div>
             <div v-else>共选择了{{ selected.length }}个</div>
@@ -73,6 +87,9 @@ export default {
         items: [],
         total: 0,
         loading: false,
+        delete_dialog: false,
+        delete_imported_success: true,
+        delete_imported_failed: false,
         options: {},
         headers: [
             {text: "ID", sortable: true, value: "id"},
@@ -193,6 +210,7 @@ export default {
                 });
             })
         },
+
         delete_record() {
             this.loading = true;
             this.$backend("/admin/scan/delete", {
@@ -201,6 +219,8 @@ export default {
                     hashlist: this.selected.map((v) => {
                         return v.hash;
                     }),
+                    delete_success: this.delete_imported_success,
+                    delete_failed: this.delete_imported_failed,
                 }),
             }).then((rsp) => {
                 if (rsp.err !== "ok") {
@@ -209,24 +229,7 @@ export default {
                 this.getDataFromApi();
             }).finally(() => {
                 this.loading = false;
-            });
-        },
-        mark_as(status) {
-            this.loading = true;
-            this.$backend("/admin/scan/mark", {
-                method: "POST",
-                body: JSON.stringify({hashlist: this.selected, status: status}),
-            }).then((rsp) => {
-                if (rsp.err !== "ok") {
-                    this.$alert("error", rsp.msg);
-                }
-            }).finally(() => {
-                this.loading = false;
-            });
-            this.items.map((v) => {
-                if (this.selected.indexOf(v.hash)) {
-                    v.status = status;
-                }
+                this.delete_dialog = false;
             });
         },
     },
