@@ -693,7 +693,7 @@ class BaseHandler(web.RequestHandler):
         return books
 
     def plugin_search_books(self, mi):
-        title = re.sub(u"[(（].*", "", mi.title)
+        title = re.sub(u"[\s[{【(（].*", "", mi.title)
         api = douban.DoubanBookApi(
             CONF["douban_apikey"],
             CONF["douban_baseurl"],
