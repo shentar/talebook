@@ -19,7 +19,7 @@ CHROME_HEADERS = {
     "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.6",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)"
-    + "Chrome/66.0.3359.139 Safari/537.36",
+                  + "Chrome/66.0.3359.139 Safari/537.36",
 }
 
 KEY = "douban"
@@ -56,7 +56,9 @@ class DoubanBookApi(object):
             return author[0]
         return author
 
-    def request(self, url, params={}):
+    def request(self, url, params=None):
+        if params is None:
+            params = {}
         if self.apikey:
             params["apikey"] = self.apikey
 
@@ -152,13 +154,15 @@ class DoubanBookApi(object):
         mi.author = mi.authors[0]
         mi.author_sort = mi.authors[0]
         mi.publisher = book["publisher"]
-        mi.comments = book["summary"]
         mi.isbn = book.get("isbn13", None)
         mi.series = book.get("serials", None)
         mi.tags = [t["name"] for t in book["tags"]][:8]
         mi.rating = int(float(book["rating"]["average"]))
         mi.pubdate = str2date(book["pubdate"])
         mi.douban_author_intro = book["author_intro"]
+        mi.comments = book["summary"]
+        if len(mi.comments) == 0:
+            mi.comments = mi.douban_author_intro
         mi.douban_subtitle = book.get("subtitle", None)
         mi.website = "https://book.douban.com/subject/%s/" % book["id"]
         mi.source = u"豆瓣"
