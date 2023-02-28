@@ -79,8 +79,8 @@ class Reader(Base, SQLAlchemyMixin):
     OVERSIZE_SHRINK_RATE = 0.8
     SQLITE_MAX_LENGTH = 32 * 1024.0
 
-    RE_USERNAME = r"[a-z][a-z0-9_]*"
-    RE_PASSWORD = r'[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};\':",./<>?\|]*'
+    RE_USERNAME = r"^[a-z][a-z0-9_]{3,12}"
+    RE_PASSWORD = r'[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};\':",./<>?\|]{6,16}}'
 
     __tablename__ = "readers"
     id = Column(Integer, primary_key=True)
