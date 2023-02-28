@@ -155,7 +155,7 @@ class SignUp(BaseHandler):
             return {"err": "params.email.invalid", "msg": _(u"Email无效")}
         if len(username) < 3 or len(username) > 12 or not re.match(Reader.RE_USERNAME, username):
             return {"err": "params.username.invalid",
-                    "msg": _(u"用户名无效，仅支持小写字母、数字和下划线(_)，必须以小写字母开头，长度为3~12字符。")}
+                    "msg": _(u"用户名无效，仅支持小写字母、数字和下划线\"_\"，必须以小写字母开头，长度为3~12字符。")}
         if len(password) < 6 or len(password) > 16 or not re.match(Reader.RE_PASSWORD, password):
             return {"err": "params.password.invalid", "msg": _(u"密码无效")}
 
