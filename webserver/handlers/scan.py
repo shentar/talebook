@@ -52,16 +52,19 @@ class Scanner:
             return False
 
     def run_scan(self, path_dir):
+        sem = threading.Semaphore(value=1)
         if not self.allow_backgrounds():
-            self.do_scan(path_dir)
+            self.do_scan(path_dir, sem)
         else:
             logging.info("run into background thread")
-            t = threading.Thread(name="do_scan", target=self.do_scan, args=(path_dir,))
+
+            t = threading.Thread(name="do_scan", target=self.do_scan, args=(path_dir,sem,))
             t.setDaemon(True)
             t.start()
+        sem.acquire(timeout=30)
         return 1
 
-    def do_scan(self, path_dir):
+    def do_scan(self, path_dir, sem):
         from calibre.ebooks.metadata.meta import get_metadata
 
         if threading.get_ident() != self.curret_thread:
@@ -86,28 +89,27 @@ class Scanner:
         logging.info("========== start to check files size & name ============")
 
         rows = []
-        inserted_hash = set()
+        first_time = True
         for fname, fpath, fmt in tasks:
             # logging.info("Scan: %s", fpath)
             if self.session.query(ScanFile).filter(ScanFile.path == fpath).count() > 0:
                 # 如果已经有相同的文件记录，则跳过
                 continue
 
-            stat = os.stat(fpath)
-            md5 = hashlib.md5(fname.encode("UTF-8")).hexdigest()
-            hash = "fstat:%s/%s" % (stat.st_size, md5)
-            if hash in inserted_hash:
-                logging.warning("maybe have same book, skip: %s", fpath)
-                continue
-
-            row = ScanFile(fpath, hash, scan_id)
+            row = ScanFile(fpath, "", scan_id)
             if not self.save_or_rollback(row):
                 continue
+            if first_time:
+                first_time = False
+                sem.release()
             rows.append(row)
-        # self.session.bulk_save_objects(rows)
+
+        if first_time:
+            sem.release()
 
         logging.info("========== start to check files hash & meta ============")
         # 检查文件哈希值，检查DB重复情况
+        inserted_hash = set()
         for row in rows:
             fpath = row.path
             # 尝试解析metadata
@@ -136,12 +138,10 @@ class Scanner:
             sha256.update(hex(os.path.getsize(fpath if fpath else "")).encode("UTF-8"))
             hash_str = "sha256:" + sha256.hexdigest()
 
-            if self.session.query(ScanFile).filter(ScanFile.hash == hash_str).count() > 0 or hash_str in inserted_hash:
+            if hash_str in inserted_hash or self.session.query(ScanFile).filter(ScanFile.hash == hash_str).count() > 0:
                 # 如果已经有相同的哈希值，则删掉本任务
                 row.status = ScanFile.DROP
-            else:
-                # 或者，更新为真实的哈希值
-                row.hash = hash_str
+            row.hash = hash_str
             inserted_hash.add(hash_str)
             if not self.save_or_rollback(row):
                 continue
@@ -338,15 +338,15 @@ class ScanDelete(BaseHandler):
             hashlist = None
         delete_success = req["delete_success"]
         delete_failed = req["delete_failed"]
-        logging.info("delete_success: {}, delete_failed: {}", delete_success, delete_failed)
+        logging.info("delete_success: %s, delete_failed: %s" % (delete_success, delete_failed))
 
         delete_files = []
         records = self.session.query(ScanFile).filter(ScanFile.hash.in_(hashlist))
         for record in records:
-            if record.status == ScanFile.IMPORTED and delete_success:
+            if (ScanFile.IMPORTED == record.status) and delete_success:
                 delete_files.append(record.path)
                 logging.info("try to delete one imported successfully file: %s" % record)
-            if record.status != ScanFile.IMPORTED and delete_failed:
+            if (ScanFile.IMPORTED != record.status) and delete_failed:
                 delete_files.append(record.path)
                 logging.info("try to delete one imported failed file: %s" % record)
 

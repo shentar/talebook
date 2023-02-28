@@ -32,8 +32,8 @@
             <v-card>
                 <v-card-title class="">删除选中的记录及书籍源文件</v-card-title>
                 <v-card-text>
-                    <v-checkbox v-model="this.delete_imported_success" :label="`删除导入成功的书籍源文件`"></v-checkbox>
-                    <v-checkbox v-model="this.delete_imported_failed" :label="`删除导入失败的书籍源文件`"></v-checkbox>
+                    <v-checkbox v-model="delete_imported_success" :label="`删除导入成功的书籍源文件`"></v-checkbox>
+                    <v-checkbox v-model="delete_imported_failed" :label="`删除导入失败的书籍源文件`"></v-checkbox>
                 </v-card-text>
                 <v-card-actions>
                     <v-btn color="" text @click="delete_dialog = false">取消</v-btn>
