@@ -96,7 +96,8 @@ class Scanner:
                 # 如果已经有相同的文件记录，则跳过
                 continue
 
-            row = ScanFile(fpath, "", scan_id)
+            # 先用fpath作为hash填入，后面会修改为正式的值。
+            row = ScanFile(fpath, fpath, scan_id)
             if not self.save_or_rollback(row):
                 continue
             if first_time:
@@ -345,10 +346,10 @@ class ScanDelete(BaseHandler):
         for record in records:
             if (ScanFile.IMPORTED == record.status) and delete_success:
                 delete_files.append(record.path)
-                logging.info("try to delete one imported successfully file: %s" % record)
+                logging.info("try to delete one imported successfully file: %s" % record.path)
             if (ScanFile.IMPORTED != record.status) and delete_failed:
                 delete_files.append(record.path)
-                logging.info("try to delete one imported failed file: %s" % record)
+                logging.info("try to delete one imported failed file: %s" % record.path)
 
         m = Scanner(self.db, self.settings["ScopedSession"])
 
