@@ -35,7 +35,7 @@ RUN if [ "x${BUILD_COUNTRY}" = "xCN" ]; then \
     fi
 
 # install envsubst
-RUN apt-get update && apt-get install -y gettext procps
+RUN apt-get update && apt-get install -y gettext procps vim
 
 # intall nodejs for nuxtjs server side render
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
