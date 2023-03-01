@@ -52,13 +52,12 @@ class Scanner:
             return False
 
     def run_scan(self, path_dir):
-        sem = threading.Semaphore(value=1)
+        sem = threading.Semaphore(value=0)
         if not self.allow_backgrounds():
             self.do_scan(path_dir, sem)
         else:
             logging.info("run into background thread")
-
-            t = threading.Thread(name="do_scan", target=self.do_scan, args=(path_dir,sem,))
+            t = threading.Thread(name="do_scan", target=self.do_scan, args=(path_dir, sem,))
             t.setDaemon(True)
             t.start()
         sem.acquire(timeout=30)
