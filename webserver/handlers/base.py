@@ -712,13 +712,13 @@ class BaseHandler(web.RequestHandler):
         books = [api._metadata(b) for b in books]
 
         # append baidu book
-        api = baike.BaiduBaikeApi(copy_image=False)
-        try:
-            book = api.get_book(title)
-        except:
-            return {"err": "httprequest.baidubaike.failed", "msg": _(u"百度百科查询失败")}
-        if book:
-            books.append(book)
+        # api = baike.BaiduBaikeApi(copy_image=False)
+        # try:
+        #     book = api.get_book(title)
+        # except:
+        #     return {"err": "httprequest.baidubaike.failed", "msg": _(u"百度百科查询失败")}
+        # if book:
+        #     books.append(book)
         return books
 
     def plugin_get_book_meta(self, provider_key, provider_value, mi):
