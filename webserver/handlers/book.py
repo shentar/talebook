@@ -20,7 +20,7 @@ from webserver import constants, loader, utils
 from webserver.handlers.base import BaseHandler, ListHandler, js
 from webserver.models import Item
 from webserver.plugins.meta import baike, douban
-from webserver.utils import check_email, PdfCopyer
+from webserver.utils import check_email, PdfCopyer, adjust_book_info
 
 CONF = loader.get_settings()
 _q = queue.Queue()
@@ -296,7 +296,6 @@ class BookRefer(BaseHandler):
         return {"err": "ok"}
 
 
-
 class BookEdit(BaseHandler):
     @js
     def post(self, id):
@@ -523,6 +522,7 @@ class BookUpload(BaseHandler):
         with open(fpath, "rb") as stream:
             mi = get_metadata(stream, stream_type=fmt, use_libprs_metadata=True)
 
+        adjust_book_info(fpath + name, name, mi)
         if fmt.lower() == "txt":
             mi.title = name.replace(".txt", "")
             mi.authors = [_(u"佚名")]
@@ -593,9 +593,6 @@ class BookRead(BaseHandler):
             fpath = book.get("fmt_%s" % fmt, None)
             if not fpath:
                 continue
-            # epub_dir is for javascript
-            epub_dir = os.path.dirname(fpath).replace(CONF["with_library"], "/get/extract/")
-            epub_dir = urllib.parse.quote(epub_dir)
             self.extract_book(book, fpath, fmt)
             self.user_history("read_history", book_id)
             self.count_increase(book_id, count_visit=1)
@@ -633,7 +630,6 @@ class BookRead(BaseHandler):
     def extract_book(self, book, fpath, fmt):
         fdir = os.path.dirname(fpath).replace(CONF["with_library"], CONF["extract_path"])
         subprocess.call(["mkdir", "-p", fdir])
-        # fdir = os.path.dirname(fpath) + "/extract"
         if os.path.isfile(fdir + "/META-INF/container.xml"):
             subprocess.call(["chmod", "a+rx", "-R", fdir + "/META-INF"])
             return

@@ -3,6 +3,8 @@
 
 
 import datetime
+import logging
+import os
 import re
 from gettext import gettext as _
 
@@ -155,6 +157,39 @@ def compare_books_by_visit_download(x, y):
         return 1
     else:
         return -1
+
+
+def adjust_book_info(full_path, file_name, mi):
+    try:
+        filter_tags(mi)
+
+        # 对于PDF文件，大于6MB，多半是扫描版，扫描版一般PDF内部的title填写错误，直接使用文件名。
+        fmt = file_name.split(".")[-1].lower()
+        if fmt == "pdf":
+            f = os.stat(full_path)
+            if f.st_size > 6 * 1024 * 1024:
+                mi.title = re.sub(u"[-\s[{【(（+=<_].*", "", file_name)
+    except Exception as e:
+        logging.warning("some err: path: %s, mi: %s, err: %r" % (full_path, mi, e))
+
+
+INVALID_TAG_CHA = ".-:：（【{[("
+INVALID_TAG_STR = ["sanqiu", "novel"]
+
+
+def filter_tags(mi):
+    try:
+        # 去除无效tag
+        for t in mi.tags:
+            tag = t.lower()
+            for i in INVALID_TAG_STR:
+                if i in tag:
+                    mi.tags.remove(t)
+            for i in INVALID_TAG_CHA:
+                if i in tag:
+                    mi.tags.remove(t)
+    except Exception as e:
+        logging.warning("some err: mi: %s, err: %r" % (mi, e))
 
 
 def check_email(addr):

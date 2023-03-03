@@ -21,6 +21,7 @@ from webserver import loader, utils, constants
 # import social_tornado.handlers
 from webserver.models import Item, Message, Reader, IpDownloads, KeyValueStore
 from webserver.plugins.meta import baike, douban
+from webserver.utils import filter_tags
 
 messages = defaultdict(list)
 CONF = loader.get_settings()
@@ -757,7 +758,9 @@ class BaseHandler(web.RequestHandler):
                 mi.tags += ts[:8]
                 logging.info("tags are %s" % ','.join(mi.tags))
                 self.db.set_tags(book_id, mi.tags)
+        refer_mi.tags = mi.tags
         mi.smart_update(refer_mi, replace_metadata=True)
+        filter_tags(mi)
 
     def set_website(self, book_id, provider_key, provider_value):
         if provider_key != douban.KEY:

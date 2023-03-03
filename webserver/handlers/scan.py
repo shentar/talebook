@@ -15,6 +15,7 @@ import tornado
 from webserver import loader
 from webserver.handlers.base import BaseHandler, auth, js, is_admin
 from webserver.models import Item, ScanFile
+from webserver.utils import adjust_book_info
 
 CONF = loader.get_settings()
 SCAN_EXT = ["azw", "azw3", "epub", "mobi", "pdf", "txt"]
@@ -97,6 +98,8 @@ class Scanner:
 
             # 先用fpath作为hash填入，后面会修改为正式的值。
             row = ScanFile(fpath, fpath, scan_id)
+            # 先使用文件名占位
+            row.title = fname
             if not self.save_or_rollback(row):
                 continue
             if first_time:
@@ -117,6 +120,7 @@ class Scanner:
             with open(fpath, "rb") as stream:
                 mi = get_metadata(stream, stream_type=fmt, use_libprs_metadata=True)
 
+            adjust_book_info(fpath, row.title, mi)
             row.title = mi.title
             row.author = mi.author_sort
             row.publisher = mi.publisher
