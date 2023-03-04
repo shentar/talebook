@@ -85,13 +85,8 @@ export default {
                 return false
             }
 
+            // 未禁止即可以上传。
             if (user.pems.indexOf("U") > -1) {
-                this.dialog = false
-                this.$alert("info", "没有权限上传书籍，请联系管理员申请。")
-                return false
-            }
-
-            if (user.pems.indexOf("u") < 0) {
                 this.dialog = false
                 this.$alert("info", "没有权限上传书籍，请联系管理员申请。")
                 return false
