@@ -668,6 +668,11 @@ class BookRead(BaseHandler):
             fpath = book.get("fmt_%s" % fmt, None)
             if not fpath:
                 continue
+            # epub_dir is for javascript
+            epub_dir = os.path.dirname(fpath).replace(CONF["with_library"], "/get/extract/")
+            epub_dir = urllib.parse.quote(epub_dir)
+            _ = epub_dir
+
             self.extract_book(book, fpath, fmt)
             self.user_history("read_history", book_id)
             self.count_increase(book_id, count_visit=1)
