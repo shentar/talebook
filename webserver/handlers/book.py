@@ -14,7 +14,7 @@ import urllib
 from gettext import gettext as _
 
 import tornado.escape
-from tornado import web
+from tornado import web, iostream, httputil
 
 from webserver import constants, loader, utils
 from webserver.handlers.base import BaseHandler, ListHandler, js
@@ -387,19 +387,22 @@ class BookDownload(BaseHandler):
             elif not self.current_user.can_save(check=True):
                 raise web.HTTPError(403, reason=_(u"无权操作"))
 
-        # 非管理员，每天限制下载的书本数量。
-        self.check_and_increase_download_count()
-
         fmt = fmt.lower()
         logging.debug("download %s.%s" % (id, fmt))
         book = self.get_book(id)
         book_id = book["id"]
-        self.user_history("download_history", book_id)
-        self.count_increase(book_id, count_download=1)
         if "fmt_%s" % fmt not in book:
             raise web.HTTPError(404, reason=_(u"%s格式无法下载" % fmt))
+
+        # 非管理员，每天限制下载的书本数量。
+        if not (fmt == "pdf" and self.request.headers.get("Range") is not None):
+            self.check_and_increase_download_count()
+            self.user_history("download_history", book_id)
+            self.count_increase(book_id, count_download=1)
+
         path = book["fmt_%s" % fmt]
         book["fmt"] = fmt
+        # orig_title = book["title"]
         book["title"] = urllib.parse.quote_plus(book["title"])
         fname = "%(title)s.%(fmt)s" % book
         att = u"attachment; filename=\"%s\"; filename*=UTF-8''%s" % (fname, fname)
@@ -410,18 +413,78 @@ class BookDownload(BaseHandler):
 
         if fmt == "pdf":
             self.set_header("Content-Type", "application/pdf")
-            try:
-                with open(path, "rb") as f:
-                    pc = PdfCopyer()
-                    pc(f, book["title"]).write(BookStream(self))
-            except Exception as e:
-                logging.warning("some pdf error: %r" % e)
-                with open(path, "rb") as f:
-                    self.write(f.read())
+            # try:
+            #     with open(path, "rb") as f:
+            #         pc = PdfCopyer()
+            #         pc(f, orig_title).write(BookStream(self))
+            # except Exception as e:
+            #     logging.warning("some pdf error: %r" % e)
+            self.range_get_pdf(path)
         else:
             self.set_header("Content-Type", "application/octet-stream")
             with open(path, "rb") as f:
                 self.write(f.read())
+
+    def range_get_pdf(self, path):
+        self.set_header("Accept-Ranges", "bytes")
+        request_range = None
+        range_header = self.request.headers.get("Range")
+        if range_header:
+            # As per RFC 2616 14.16, if an invalid Range header is specified,
+            # the request will be treated as if the header didn't exist.
+            request_range = httputil._parse_request_range(range_header)
+
+        file_stat = os.stat(path)
+        size = file_stat.st_size
+
+        if request_range:
+            start, end = request_range
+            if start is not None and start < 0:
+                start += size
+                if start < 0:
+                    start = 0
+            if (start is not None
+                and (start >= size or (end is not None and start >= end))) \
+                    or end == 0:
+                # As per RFC 2616 14.35.1, a range is not satisfiable only: if
+                # the first requested byte is equal to or greater than the
+                # content, or when a suffix with length 0 is specified.
+                # https://tools.ietf.org/html/rfc7233#section-2.1
+                # A byte-range-spec is invalid if the last-byte-pos value is present
+                # and less than the first-byte-pos.
+                self.set_status(416)  # Range Not Satisfiable
+                self.set_header("Content-Type", "text/plain")
+                self.set_header("Content-Range", "bytes */%s" % (size,))
+                return
+            if end is not None and end > size:
+                # Clients sometimes blindly use a large range to limit their
+                # download size; cap the endpoint at the actual file size.
+                end = size
+            # Note: only return HTTP 206 if less than the entire range has been
+            # requested. Not only is this semantically correct, but Chrome
+            # refuses to play audio if it gets an HTTP 206 in response to
+            # ``Range: bytes=0-``.
+            if size != (end or size) - (start or 0):
+                self.set_status(206)  # Partial Content
+                self.set_header("Content-Range", httputil._get_content_range(start, end, size))
+        else:
+            start = end = None
+
+        if start is not None and end is not None:
+            content_length = end - start
+        elif end is not None:
+            content_length = end
+        elif start is not None:
+            content_length = size - start
+        else:
+            content_length = size
+        self.set_header("Content-Length", content_length)
+
+        content = web.StaticFileHandler.get_content(path, start, end)
+        if isinstance(content, bytes):
+            content = [content]
+        for chunk in content:
+            self.write(chunk)
 
 
 class BookNav(ListHandler):
