@@ -286,7 +286,7 @@ class BookRefer(BaseHandler):
         else:
             if only_meta == "yes":
                 refer_mi.cover_data = None
-            self.update_book_meta(book_id, mi, refer_mi)
+            self.update_book_meta(mi, refer_mi)
 
         self.db.set_metadata(book_id, mi)
 

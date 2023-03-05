@@ -746,8 +746,8 @@ class BaseHandler(web.RequestHandler):
 
         return None
 
-    def update_book_meta(self, book_id, mi, refer_mi):
-        if len(refer_mi.tags) + len(mi.tags) <= 2:
+    def update_book_meta(self, mi, refer_mi):
+        if len(refer_mi.tags) == 0:
             ts = []
             for nn, tags in constants.BOOK_NAV:
                 for tag in tags:
@@ -755,12 +755,10 @@ class BaseHandler(web.RequestHandler):
                             tag not in constants.ESCAPED_TAGS:
                         ts.append(tag)
             if len(ts) > 0:
-                mi.tags += ts[:8]
-                logging.info("tags are %s" % ','.join(mi.tags))
-                self.db.set_tags(book_id, mi.tags)
-        refer_mi.tags = mi.tags
-        mi.smart_update(refer_mi, replace_metadata=True)
+                refer_mi.tags += ts[:8]
+                logging.info("tags are %s" % ','.join(refer_mi.tags))
         filter_tags(mi)
+        mi.smart_update(refer_mi, replace_metadata=True)
 
     def set_website(self, book_id, provider_key, provider_value):
         if provider_key != douban.KEY:

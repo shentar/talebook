@@ -209,6 +209,8 @@ class Scanner:
             with open(fpath, "rb") as stream:
                 mi = get_metadata(stream, stream_type=fmt, use_libprs_metadata=True)
 
+            mi.tags = row.tags
+            mi.title = row.title
             # 再次检查是否有重复书籍
             books = self.db.books_with_same_title(mi)
             if books:

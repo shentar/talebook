@@ -563,7 +563,7 @@ class AdminBookList(BaseHandler):
             if book:
                 refer_mi = api._metadata(book)
                 refer_mi.cover_data = None
-                self.update_book_meta(book_id, mi, refer_mi)
+                self.update_book_meta(mi, refer_mi)
                 self.db.set_metadata(book_id, mi)
                 self.set_website(book_id, refer_mi.provider_key, refer_mi.provider_value)
                 logging.info("update one book by isbn: %s" % mi)
@@ -578,7 +578,7 @@ class AdminBookList(BaseHandler):
         if not refer_mi:
             return
         refer_mi.cover_data = None
-        self.update_book_meta(book_id, mi, refer_mi)
+        self.update_book_meta(mi, refer_mi)
         self.db.set_metadata(book_id, mi)
         self.set_website(book_id, refer_book.provider_key, refer_book.provider_value)
         logging.info("updated one book by search title: %s" % mi)
