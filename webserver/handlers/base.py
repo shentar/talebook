@@ -275,23 +275,7 @@ class BaseHandler(web.RequestHandler):
         book_id = int(book)
         if not self.user_id():
             return
-        extra = self.current_user.extra
-        history = extra.get(action, [])
-        if len(history) > 0:
-            for i in range(0, len(history)):
-                if history[i] == book_id:
-                    history.pop(i)
-                    break
-
-        history.insert(0, book_id)
-        extra[action] = history
-        user = self.current_user
-        user.extra.update(extra)
-        try:
-            user.save()
-        except Exception as e:
-            self.session.rollback()
-            logging.warning("some err: %r" % e)
+        utils.save_user_his(self.session, action, self.current_user, book_id)
 
     def del_user_history(self, action, book):
         book_id = int(book)
@@ -507,11 +491,12 @@ class BaseHandler(web.RequestHandler):
         except:
             item = Item()
             item.book_id = book_id
+            item.save()
         item.count_guest += g
         item.count_visit += v
         item.count_download += d
         try:
-            item.save()
+            self.session.commit()
         except Exception as e:
             self.session.rollback()
             logging.warning("some err: %r" % e)
@@ -525,8 +510,10 @@ class BaseHandler(web.RequestHandler):
                     s = KeyValueStore()
                     s.key = o["key"]
                     s.value = "1"
-                try:
                     s.save()
+
+                try:
+                    self.session.commit()
                 except Exception as e:
                     self.session.rollback()
                     logging.warning("some err: %r" % e)

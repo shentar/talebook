@@ -192,6 +192,25 @@ def filter_tags(mi):
         logging.warning("some err: mi: %s, err: %r" % (mi, e))
 
 
+def save_user_his(session, action, user, book_id):
+    extra = user.extra
+    history = extra.get(action, [])
+    if len(history) > 0:
+        for i in range(0, len(history)):
+            if history[i] == book_id:
+                history.pop(i)
+                break
+
+    history.insert(0, book_id)
+    extra[action] = history
+    user.extra.update(extra)
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        logging.warning("some err: %r" % e)
+
+
 def check_email(addr):
     if not addr:
         return False

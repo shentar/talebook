@@ -59,7 +59,7 @@ def safe_filename(filename):
     return re.sub(r"[\/\\\:\*\?\"\<\>\|]", "_", filename)  # 替换为下划线
 
 
-# the codes is from calibre source code. just change 'ascii_filename' to 'safe_filename'
+# the codes are from calibre source code. just change 'ascii_filename' to 'safe_filename'
 def utf8_construct_path_name(book_id, title, author):
     from calibre.db.backend import DB, WINDOWS_RESERVED_NAMES
 

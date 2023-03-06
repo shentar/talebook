@@ -435,7 +435,7 @@ class UserInfo(BaseHandler):
         if user and user.access_time and user.access_time.timestamp() < time.time() - 30:
             user.access_time = datetime.datetime.now()
             try:
-                user.save()
+                self.session.commit()
             except Exception as e:
                 self.session.rollback()
                 logging.warning("some err: %r" % e)

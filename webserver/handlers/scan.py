@@ -12,9 +12,9 @@ from gettext import gettext as _
 import sqlalchemy
 import tornado
 
-from webserver import loader
+from webserver import loader, utils
 from webserver.handlers.base import BaseHandler, auth, js, is_admin
-from webserver.models import Item, ScanFile
+from webserver.models import Item, ScanFile, Reader
 from webserver.utils import adjust_book_info
 
 CONF = loader.get_settings()
@@ -23,8 +23,7 @@ SCAN_DIR_PREFIX = "/data/"  # 限定扫描必须在/data/目录下，以防黑�
 
 
 class Scanner:
-    def __init__(self, calibre_db, ScopedSession, user_id=None, base_handler=None):
-        self.base_handler = base_handler
+    def __init__(self, calibre_db, ScopedSession, user_id=None):
         self.db = calibre_db
         self.user_id = user_id
         self.func_new_session = ScopedSession
@@ -127,7 +126,6 @@ class Scanner:
             row.tags = ", ".join(mi.tags)
             row.status = ScanFile.READY  # 设置为可处理
 
-            # TODO calibre提供的书籍重复接口只有对比title；应当提前对整个书库的文件做哈希，才能准确去重
             books = self.db.books_with_same_title(mi)
             if books:
                 row.book_id = books.pop()
@@ -223,7 +221,9 @@ class Scanner:
             row.book_id = self.db.import_book(mi, [fpath])
             row.status = ScanFile.IMPORTED
             self.save_or_rollback(row)
-            self.base_handler.user_history("upload_history", row.book_id)
+            user = self.session.query(Reader).filter(Reader.id == self.user_id)
+            if user:
+                utils.save_user_his(self.session, "upload_history", self.user_id, row.book_id)
             # 添加关联表
             item = Item()
             item.book_id = row.book_id
@@ -387,8 +387,7 @@ class ImportRun(BaseHandler):
         if hashlist == "all":
             hashlist = None
 
-        m = Scanner(self.db, self.settings["ScopedSession"],
-                    user_id=self.user_id(), base_handler=self)
+        m = Scanner(self.db, self.settings["ScopedSession"], user_id=self.user_id())
         total = m.run_import(hashlist)
         if total == 0:
             return {"err": "empty", "msg": _("没有等待导入书库的书籍！")}
