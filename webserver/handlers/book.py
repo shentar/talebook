@@ -213,6 +213,7 @@ class BookFavor(BaseHandler):
 
         # check_book_exist
         book = self.get_book(id)
+        logging.info("Unfav the book: uid: %d, %s" % (self.user_id(), book))
         self.del_user_history("fav_history", id)
         return {
             "err": "ok",
@@ -366,6 +367,7 @@ class BookDelete(BaseHandler):
 
         self.session.query(Item).filter(Item.book_id == bid).delete()
         self.db.delete_book(bid)
+        logging.info("deleted one book: user: %d, %s" % (self.user_id(), book))
         self.session.commit()
         # self.add_msg("success", _(u"删除书籍《%s》") % book["title"])
         return {"err": "ok"}

@@ -248,7 +248,7 @@ class BaseHandler(web.RequestHandler):
         user.access_time = datetime.datetime.now()
         user.extra["login_ip"] = self.request.remote_ip
         try:
-            user.save()
+            self.session.commit()
         except Exception as e:
             self.session.rollback()
             logging.warning("some err: %r" % e)
@@ -293,7 +293,7 @@ class BaseHandler(web.RequestHandler):
         user = self.current_user
         user.extra.update(extra)
         try:
-            user.save()
+            self.session.commit()
         except Exception as e:
             self.session.rollback()
             logging.warning("some err: %r" % e)
@@ -476,7 +476,7 @@ class BaseHandler(web.RequestHandler):
             ipdownloads.dcount += 1
 
         try:
-            ipdownloads.save()
+            self.session.commit()
         except Exception as e:
             self.session.rollback()
             logging.warning("some err: %r" % e)
@@ -757,11 +757,12 @@ class BaseHandler(web.RequestHandler):
         except:
             item = Item()
             item.book_id = book_id
+            item.save()
 
         if item.website != douban_id:
             item.website = douban_id
             try:
-                item.save()
+                self.session.commit()
             except Exception as e:
                 self.session.rollback()
                 logging.warning("some err: %r" % e)

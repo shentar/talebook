@@ -221,9 +221,9 @@ class Scanner:
             row.book_id = self.db.import_book(mi, [fpath])
             row.status = ScanFile.IMPORTED
             self.save_or_rollback(row)
-            user = self.session.query(Reader).filter(Reader.id == self.user_id)
+            user = self.session.query(Reader).filter(Reader.id == self.user_id).first()
             if user:
-                utils.save_user_his(self.session, "upload_history", self.user_id, row.book_id)
+                utils.save_user_his(self.session, "upload_history", user, row.book_id)
             # 添加关联表
             item = Item()
             item.book_id = row.book_id

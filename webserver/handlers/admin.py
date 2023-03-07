@@ -119,7 +119,7 @@ class AdminUsers(BaseHandler):
         if p:
             user.set_permission(p)
         try:
-            user.save()
+            self.session.commit()
         except Exception as e:
             self.session.rollback()
             logging.warning("some err: %r" % e)
@@ -323,6 +323,7 @@ class AdminInstall(BaseHandler):
             user.username = username
             user.name = username
             user.create_time = datetime.datetime.now()
+            user.save()
 
         # 设置admin user的信息
         user.email = email
@@ -334,7 +335,7 @@ class AdminInstall(BaseHandler):
         user.extra = {"kindle_email": ""}
         user.set_secure_password(password)
         try:
-            user.save()
+            self.session.commit()
         except:
             self.session.rollback()
             logging.error(traceback.format_exc())
