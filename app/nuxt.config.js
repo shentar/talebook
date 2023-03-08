@@ -27,7 +27,7 @@ export default {
     components: true,
 
     // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
-    buildModules: ['@nuxtjs/vuetify', '@nuxtjs/google-fonts'],
+    buildModules: ['@nuxtjs/vuetify', '@nuxtjs/google-fonts', 'nuxt-webpack-optimisations'],
 
     // Modules: https://go.nuxtjs.dev/config-modules
     modules: [],
