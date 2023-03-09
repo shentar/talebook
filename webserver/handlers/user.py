@@ -44,6 +44,7 @@ class Done(BaseHandler):
 
         if not user.create_time:
             self.session.query(Reader).filter(Reader.id == user.id).delete()
+            self.session.commit()
             user = None
         else:
             user.check_and_update(si)
@@ -99,7 +100,7 @@ class UserUpdate(BaseHandler):
             user.extra["kindle_email"] = ke
 
         try:
-            user.save()
+            self.session.commit()
             self.add_msg("success", _("Settings saved."))
             return {"err": "ok"}
         except:

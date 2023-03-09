@@ -54,6 +54,6 @@ export default {
 
     // Build Configuration: https://go.nuxtjs.dev/config-build
     build: {
-        cache: true, parallel: true
+        cache: true, parallel: true, client: false
     }
 }

@@ -200,6 +200,7 @@ class BaseHandler(web.RequestHandler):
         self.cookies_cache = {}
 
     def on_finish(self):
+        self.session.close()
         ScopedSession = self.settings["ScopedSession"]
         ScopedSession.remove()
 
