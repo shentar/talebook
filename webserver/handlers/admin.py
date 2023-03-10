@@ -15,7 +15,7 @@ from gettext import gettext as _
 
 import tornado
 
-from webserver import loader
+from webserver import loader, utils
 from webserver.handlers.base import BaseHandler, auth, js, is_admin
 from webserver.models import Reader
 from webserver.plugins.meta import baike, douban
@@ -520,69 +520,100 @@ class AdminBookList(BaseHandler):
         logging.info("run into background thread")
         req = tornado.escape.json_decode(self.request.body)
         book_list = req["book_list"]
-        t = threading.Thread(name="do_scan", target=self.do_detect, args=(book_list, True,))
-        t.setDaemon(True)
-        t.start()
-        return {"err": "ok", "msg": _(u"扫描任务已经在后台运行，可以使用刷新按钮查看进度，请勿重复下发扫描任务！")}
+        tags = req["tags"]
+        add_tags = req["add_tags"]
+        delete_tags = req["delete_tags"]
+        detect_books = req["detect_books"]
+
+        if detect_books:
+            t = threading.Thread(name="do_scan", target=self.do_detect, args=(book_list, True,))
+            t.setDaemon(True)
+            t.start()
+            return {"err": "ok", "msg": _(u"扫描任务已经在后台运行，可以使用刷新按钮查看进度，请勿重复下发扫描任务！")}
+
+        if (not add_tags and not delete_tags) or len(tags):
+            return {"err": "params.error", "msg": _(u"参数错误！")}
+
+        for id in book_list:
+            mi = self.db.get_metadata(id, index_is_id=True)
+            changed = False
+            if mi is not None:
+                if add_tags:
+                    mi.tags += tags
+                    changed = True
+                elif delete_tags:
+                    for tag in tags:
+                        mi.tags.remove(tag)
+                        changed = True
+            if changed:
+                self.db.set_metadata(id, mi)
+        return {"err": "ok", "msg": _(u"任务执行完成！")}
 
     def do_detect(self, book_list, background_task):
         if not book_list:
             return {"err": "params.error", "msg": _(u"参数错误")}
+        new_session = self.session
+        try:
+            if background_task:
+                new_session = self.settings["ScopedSession"]()
 
-        if background_task:
-            self.session = self.settings["ScopedSession"]()
+            api = douban.DoubanBookApi(
+                CONF["douban_apikey"],
+                CONF["douban_baseurl"],
+                copy_image=False,
+                manual_select=False,
+                maxCount=CONF["douban_max_count"],
+            )
 
-        api = douban.DoubanBookApi(
-            CONF["douban_apikey"],
-            CONF["douban_baseurl"],
-            copy_image=False,
-            manual_select=False,
-            maxCount=CONF["douban_max_count"],
-        )
+            for id in book_list:
+                try:
+                    detect_one(self.db, new_session, id, api)
+                except Exception as e:
+                    logging.info("some err when detect book: %d, err: %r" % (id, e))
+                    continue
 
-        for id in book_list:
-            try:
-                self.detect_one(id, api)
-            except Exception as e:
-                logging.info("some err when detect book: %d, err: %r" % (id, e))
-                continue
+            return {"err": "ok", "msg": _(u"批量获取书籍信息完成！")}
+        finally:
+            if background_task:
+                new_session.close()
+                ScopedSession = self.settings["ScopedSession"]
+                ScopedSession.remove()
 
-        return {"err": "ok", "msg": _(u"批量获取书籍信息完成！")}
 
-    def detect_one(self, id, api):
-        book_id = int(id)
-        mi = self.db.get_metadata(id, index_is_id=True)
-        if not mi:
+def detect_one(db, session, id, api):
+    book_id = int(id)
+    mi = db.get_metadata(id, index_is_id=True)
+    if not mi:
+        return
+    has_isbn = True
+    if not mi.isbn \
+            or mi.isbn == baike.BAIKE_ISBN \
+            or str(mi.isbn).startswith('000000000'):
+        has_isbn = False
+    if has_isbn:
+        book = api.get_book_by_isbn(mi.isbn)
+        if book:
+            refer_mi = api._metadata(book)
+            refer_mi.cover_data = None
+            utils.update_book_meta(mi, refer_mi)
+            db.set_metadata(book_id, mi)
+            utils.save_website(session, book_id, refer_mi.provider_key, refer_mi.provider_value)
+            logging.info("update one book by isbn: %s" % mi)
             return
-        has_isbn = True
-        if not mi.isbn \
-                or mi.isbn == baike.BAIKE_ISBN \
-                or str(mi.isbn).startswith('000000000'):
-            has_isbn = False
-        if has_isbn:
-            book = api.get_book_by_isbn(mi.isbn)
-            if book:
-                refer_mi = api._metadata(book)
-                refer_mi.cover_data = None
-                self.update_book_meta(mi, refer_mi)
-                self.db.set_metadata(book_id, mi)
-                self.set_website(book_id, refer_mi.provider_key, refer_mi.provider_value)
-                logging.info("update one book by isbn: %s" % mi)
-                return
 
-        ref_books = self.plugin_search_books(mi)
-        if not ref_books:
-            return
+    ref_books = utils.plugin_search_books(mi)
+    if not ref_books:
+        return
 
-        refer_book = ref_books[0]
-        refer_mi = self.plugin_get_book_meta(refer_book.provider_key, refer_book.provider_value, mi)
-        if not refer_mi:
-            return
-        refer_mi.cover_data = None
-        self.update_book_meta(mi, refer_mi)
-        self.db.set_metadata(book_id, mi)
-        self.set_website(book_id, refer_book.provider_key, refer_book.provider_value)
-        logging.info("updated one book by search title: %s" % mi)
+    refer_book = ref_books[0]
+    refer_mi = utils.plugin_get_book_meta(refer_book.provider_key, refer_book.provider_value, mi)
+    if not refer_mi:
+        return
+    refer_mi.cover_data = None
+    utils.update_book_meta(mi, refer_mi)
+    db.set_metadata(book_id, mi)
+    utils.save_website(session, book_id, refer_book.provider_key, refer_book.provider_value)
+    logging.info("updated one book by search title: %s" % mi)
 
 
 def routes():

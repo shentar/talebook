@@ -11,6 +11,11 @@ from gettext import gettext as _
 import PyPDF2
 from PyPDF2 import generic
 
+from webserver import constants
+from webserver.main import CONF
+from webserver.models import Item
+from webserver.plugins.meta import douban, baike
+
 
 class SimpleBookFormatter:
     """格式化calibre book的字段"""
@@ -209,6 +214,137 @@ def save_user_his(session, action, user, book_id):
     except Exception as e:
         session.rollback()
         logging.warning("some err: %r" % e)
+
+
+def save_website(session, book_id, provider_key, provider_value):
+    if provider_key != douban.KEY:
+        return
+
+    douban_id = provider_value
+    try:
+        item = session.query(Item).filter(Item.book_id == book_id).one()
+    except:
+        item = Item()
+        item.book_id = book_id
+        item.save()
+
+    if item.website != douban_id:
+        item.website = douban_id
+        try:
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logging.warning("some err: %r" % e)
+
+
+def update_book_meta(mi, refer_mi):
+    if len(refer_mi.tags) == 0:
+        ts = []
+        for nn, tags in constants.BOOK_NAV:
+            for tag in tags:
+                if (tag in refer_mi.title or tag in refer_mi.comments or tag in refer_mi.authors) and \
+                        tag not in constants.ESCAPED_TAGS:
+                    ts.append(tag)
+        if len(ts) > 0:
+            refer_mi.tags += ts[:8]
+            logging.info("tags are %s" % ','.join(refer_mi.tags))
+    filter_tags(mi)
+    mi.smart_update(refer_mi, replace_metadata=True)
+
+
+def get_proper_book(api, books, mi):
+    if len(books) == 0:
+        return books
+
+    has_isbn = True
+    if not mi.isbn \
+            or mi.isbn == baike.BAIKE_ISBN \
+            or str(mi.isbn).startswith('000000000'):
+        has_isbn = False
+
+    isbn_id = -1
+    ids = []
+    for i, b in enumerate(books):
+        if has_isbn and mi.isbn == b.get("isbn13", "xxx"):
+            isbn_id = i
+        if mi.title == b.get("title") and mi.publisher == b.get("publisher"):
+            ids.append(i)
+
+    for i in ids:
+        b = books[i]
+        books = books[:i] + books[i + 1:]
+        books.insert(0, b)
+
+    if isbn_id == -1:
+        # 若有ISBN号，但是却没搜索出来，则精准查询一次ISBN
+        # 总是把最佳书籍放在第一位
+        if has_isbn:
+            book = api.get_book_by_isbn(mi.isbn)
+            logging.info("get book by isbn: %s" % book)
+            if book:
+                books = list(books)
+                books.insert(0, book)
+    else:
+        b = books[isbn_id]
+        books = books[:isbn_id] + books[isbn_id + 1:]
+        books.insert(0, b)
+
+    return books
+
+
+def plugin_search_books(mi):
+    title = re.sub(u"[-\s[{【(（+=<_].*", "", mi.title)
+    api = douban.DoubanBookApi(
+        CONF["douban_apikey"],
+        CONF["douban_baseurl"],
+        copy_image=False,
+        manual_select=False,
+        maxCount=CONF["douban_max_count"],
+    )
+    # first, search title
+    books = []
+    try:
+        books = api.search_books(title) or []
+    except:
+        logging.error(_(u"豆瓣接口查询 %s 失败" % title))
+
+    books = get_proper_book(api, books, mi)
+    books = [api._metadata(b) for b in books]
+
+    # append baidu book
+    # api = baike.BaiduBaikeApi(copy_image=False)
+    # try:
+    #     book = api.get_book(title)
+    # except:
+    #     return {"err": "httprequest.baidubaike.failed", "msg": _(u"百度百科查询失败")}
+    # if book:
+    #     books.append(book)
+    return books
+
+
+def plugin_get_book_meta(provider_key, provider_value, mi):
+    if provider_key == baike.KEY:
+        title = re.sub(u"[(（].*", "", mi.title)
+        api = baike.BaiduBaikeApi(copy_image=True)
+        try:
+            return api.get_book(title)
+        except:
+            logging.info("百度百科查询失败。")
+
+    if provider_key == douban.KEY:
+        mi.douban_id = provider_value
+        api = douban.DoubanBookApi(
+            CONF["douban_apikey"],
+            CONF["douban_baseurl"],
+            copy_image=True,
+            maxCount=CONF["douban_max_count"],
+        )
+        try:
+            return api.get_book(mi)
+        except:
+            logging.info("豆瓣接口查询失败")
+
+    return None
 
 
 def check_email(addr):

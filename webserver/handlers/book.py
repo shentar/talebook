@@ -229,7 +229,7 @@ class BookRefer(BaseHandler):
 
         book_id = int(id)
         mi = self.db.get_metadata(book_id, index_is_id=True)
-        books = self.plugin_search_books(mi)
+        books = utils.plugin_search_books(mi)
         keys = [
             "cover_url",
             "source",
@@ -277,7 +277,7 @@ class BookRefer(BaseHandler):
                 self.is_book_owner(book_id, self.user_id()) and self.current_user.can_edit(check=True))):
             return {"err": "user.no_permission", "msg": _(u"无权限")}
 
-        refer_mi = self.plugin_get_book_meta(provider_key, provider_value, mi)
+        refer_mi = utils.plugin_get_book_meta(provider_key, provider_value, mi)
         if not refer_mi:
             return {"err": "refer.query_failed", "msg": _(u"查询书籍引用失败。")}
 

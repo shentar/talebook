@@ -15,10 +15,55 @@
 
             <template v-if="books_selected.length > 0">
                 <v-spacer width="20px"></v-spacer>
-                <v-btn :disabled="loading" outlined color="info" @click="auto_fetch">
+                <v-btn :disabled="loading" outlined color="info" @click="auto_batch_op(true, false, false)">
                     <v-icon>mdi-delete</v-icon>
                     自动填充空缺字段
                 </v-btn>
+
+                <v-btn :disabled="loading" outlined color="info" @click="show_batch_tags=true">
+                    <v-icon>loyalty</v-icon>
+                    批量添加标签
+                </v-btn>
+                <v-btn :disabled="loading" outlined color="info" @click="show_batch_tags=true">
+                    <v-icon>loyalty</v-icon>
+                    批量删除标签
+                </v-btn>
+                <v-edit-dialog large :return-value.sync="batch_op_tags"
+                               @save="auto_batch_op(false, batch_add_tags, batch_delete_tags)"
+                               save-text="执行"
+                               @cancel="show_batch_tags=false"
+                               cancel-text="取消">
+                    <template v-slot:input>
+                        <!-- TAGS -->
+                        <div class="mt-4 text-h6">修改字段</div>
+                        <v-combobox
+                            v-model="batch_op_tags"
+                            :items="batch_op_tags"
+                            label="标签列表"
+                            :search-input.sync="batch_op_tags"
+                            hide-selected
+                            multiple
+                            small-chips>
+                            <template v-slot:no-data>
+                                <v-list-item>
+                                    <span v-if="!batch_op_tags">请输入标签名称</span>
+                                    <div v-else>
+                                        <span class="subheading">添加标签</span>
+                                        <v-chip color="green lighten-3" label small rounded> {{ batch_op_tags }}
+                                        </v-chip>
+                                    </div>
+                                </v-list-item>
+                            </template>
+                            <!-- tag chip & close -->
+                            <template v-slot:selection="{ attrs, item, parent, selected }">
+                                <v-chip v-bind="attrs" color="green lighten-3" :input-value="selected" label small>
+                                    <span class="pr-2"> {{ item }} </span>
+                                    <v-icon small @click="parent.selectItem(item)">close</v-icon>
+                                </v-chip>
+                            </template>
+                        </v-combobox>
+                    </template>
+                </v-edit-dialog>
             </template>
             <v-spacer></v-spacer>
             <v-text-field cols="2" dense v-model="search" append-icon="mdi-magnify" label="搜索"
@@ -240,6 +285,10 @@ export default {
         getdup: false,
         books_selected: [],
         tag_input: null,
+        batch_op_tags: null,
+        batch_add_tags: false,
+        batch_delete_tags: false,
+        show_batch_tags: false,
         search: "",
         page: 1,
         items: [],
@@ -314,7 +363,7 @@ export default {
                 this.loading = false;
             });
         },
-        auto_fetch() {
+        auto_batch_op(detect, add_tag, delete_tag) {
             this.loading = true;
             this.$backend("/admin/book/list", {
                 method: "POST",
@@ -322,6 +371,9 @@ export default {
                     book_list: this.books_selected.map((v) => {
                         return v.id;
                     }),
+                    detect_books: detect,
+                    add_tags: add_tag,
+                    delete_tags: delete_tag,
                 }),
             }).then((rsp) => {
                 if (rsp.err !== "ok") {
@@ -332,6 +384,9 @@ export default {
                 this.getDataFromApi();
             }).finally(() => {
                 this.loading = false;
+                if (add_tag || delete_tag) {
+                    this.show_batch_tags = false
+                }
             });
         },
         delete_book(book) {
